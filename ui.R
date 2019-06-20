@@ -21,20 +21,21 @@ library(leaflet)
 library(leaflet.extras)
 library(mapview)
 library(mapedit)
+library(osmdata)
 
 choices_relatedConcepts <- list("Gray infrastructure - roads" = "roads")
 choices_scales <- list("XL", "L", "M")
 # Hp is to obtain these from a reactive value bound to osm available_features
-#choices_osmFeatures<-list("highway" = "highway", "streams" ="streams") 
-choices_osmFeatures<-available_features()
+# choices_osmFeatures <- list("highway" = "highway", "streams" = "streams") 
+choices_osmFeatures <- osmdata::available_features()
 
 
-#choices_osmTags<-NULL
+# choices_osmTags <- NULL
 
 dashboardPagePlus(
   skin = "black-light",
   collapse_sidebar = FALSE,
-  sidebar_fullCollapse=TRUE,
+  # sidebar_fullCollapse = TRUE,
   dashboardHeaderPlus(
     title = tagList(
       tags$div(class = "logo-lg",
@@ -47,16 +48,16 @@ dashboardPagePlus(
     ,enable_rightsidebar = TRUE,
     rightSidebarIcon = "gears"
   ),
-  rightsidebar=rightSidebar(
+  rightsidebar = rightSidebar(
     #fileInput("file1", "Choose Digital Elevation Model File (raster image)",
-    #                      multiple = FALSE, accept = c("*/*","*,*",".*")),
-    #            selectInput("mode", "choose mode",choices = choices),
-    # sliderInput("z","Vertical exaggeration",min = 1,max = 50,value = 1),
-    # sliderInput("az","Azimuth of the light",min = 1,max = 360,value = 315),
-    # sliderInput("alt","Altitude of the light",min = 0,max = 90,value = 45)
+    #                      multiple = FALSE, accept = c("*/*", "*,*", ".*")),
+    #            selectInput("mode", "choose mode", choices = choices),
+    # sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
+    # sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
+    # sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45)
     
   ),
-  sidebar=dashboardSidebar(
+  sidebar = dashboardSidebar(
     collapsed = FALSE,
     disable = FALSE,
     width = 0,
@@ -67,16 +68,16 @@ dashboardPagePlus(
       # dropdownBlock(
       #   fileInput("file1", "Choose Digital Elevation Model File (raster image)",
       #             multiple = FALSE, accept = c("*/*","*,*",".*")),
-      #   selectInput("mode", "choose mode",choices = choices),
-      #   sliderInput("z","Vertical exaggeration",min = 1,max = 50,value = 1),
-      #   sliderInput("az","Azimuth of the light",min = 1,max = 360,value = 315),
-      #   sliderInput("alt","Altitude of the light",min = 0,max = 90,value = 45),
-      #   id="ss",icon = icon("map", lib = "font-awesome"),title="inputs"
+      #   selectInput("mode", "choose mode", choices = choices),
+      #   sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
+      #   sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
+      #   sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45),
+      #   id = "ss", icon = icon("map", lib = "font-awesome"), title = "inputs"
       # )
     )
   ),
   
-  body=dashboardBody(
+  body = dashboardBody(
     useShinyjs(),
     
     tabItems(
@@ -85,64 +86,64 @@ dashboardPagePlus(
         fluidRow(
           
           boxPlus(# inputs menu
-            width=12,
-            #title="input",
+            width = 12,
+            #title = "input",
             background = "light-blue",
-            closable=FALSE,status = "primary", solidHeader = FALSE, collapsible = FALSE,
+            closable = FALSE, status = "primary", solidHeader = FALSE, collapsible = FALSE,
             #enable_sidebar = FALSE,
             #style = "background-color:black; color:white; padding: 0 10px;",
             fluidRow(
               column(
-                width=3,
+                width = 3,
                 # fileInput("file1", "Choose Digital Elevation Model File (raster image)",
                 #           multiple = FALSE, accept = c("*/*","*,*",".*"))
-                selectInput("relatedconcept", "choose related concept", choices=choices_relatedConcepts)
+                selectInput("relatedconcept", "choose related concept", choices = choices_relatedConcepts)
               ),
-              column(width=3,
-                     selectizeInput("features","available features",choices=choices_osmFeatures,multiple=FALSE)
+              column(width = 3,
+                     selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
                      ),
-              column(width=3,
+              column(width = 3,
                      uiOutput("tags")
-                     #selectizeInput("tags","available tags",choices=choices_osmTags,multiple=TRUE)
+                     #selectizeInput("tags","available tags",choices = choices_osmTags,multiple = TRUE)
               ),
               column(
-                width=3,
-                selectInput("scale", "choose scale",choices = choices_scales)
+                width = 3,
+                selectInput("scale", "choose scale", choices = choices_scales)
               )
             ),
             fluidRow(
               column(
-                width=5,
-                style="text-align:left",
-                actionButton("downloadOverpass","obtain data for Related Concept")
+                width = 5,
+                style = "text-align:left",
+                actionButton("downloadOverpass", "obtain data for Related Concept")
               ),
               column(
-                offset=1,
-                width=3,
-                style="text-align:left;",
-                disabled(actionButton("doPlotMap","Compute and plot output map",icon("cog")))
+                offset = 1,
+                width = 3,
+                style = "text-align:left;",
+                disabled(actionButton("doPlotMap", "Compute and plot output map",icon("cog")))
               ),
               column(
-                width=3,
-                style="text-align:right;",
+                width = 3,
+                style = "text-align:right;",
                 disabled(downloadButton("downloadShapeFile", "Download result"))
               )
             )
           ),
           
           boxPlus(
-            width=12,
+            width = 12,
             leafletOutput("mapleaflet")
           ),
           
           boxPlus(
-            width=12,
+            width = 12,
             fluidRow(
-              #column(width=12,textInput("debug","debug")),
-                column(width=3,style="text-align:left", textInput("bbxN", "NW-lat")),
-                column(width=3,style="text-align:left",textInput("bbxW", "NW-lon")),
-                column(width=3,style="text-align:left",textInput("bbxS", "SE-lat")),
-                column(width=3,style="text-align:left",textInput("bbxE","SE-lon"))
+              #column(width = 12,textInput("debug","debug")),
+                column(width = 3, style = "text-align:left", textInput("bbxN", "NW-lat")),
+                column(width = 3, style = "text-align:left", textInput("bbxW", "NW-lon")),
+                column(width = 3, style = "text-align:left", textInput("bbxS", "SE-lat")),
+                column(width = 3, style = "text-align:left", textInput("bbxE","SE-lon"))
             )
           )
         
