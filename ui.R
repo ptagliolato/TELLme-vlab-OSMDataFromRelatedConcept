@@ -97,8 +97,10 @@ dashboardPagePlus(
                 width = 3,
                 # fileInput("file1", "Choose Digital Elevation Model File (raster image)",
                 #           multiple = FALSE, accept = c("*/*","*,*",".*"))
-                selectInput("relatedconcept", "choose related concept", choices = choices_relatedConcepts)
-              ),
+                #selectInput("relatedconcept", "choose related concept", choices = choices_relatedConcepts)
+                uiOutput("relConc")
+                
+               ),
               column(width = 3,
                      selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
                      ),

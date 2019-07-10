@@ -17,6 +17,24 @@ library(mapview)
 
 shinyServer(function(input, output, session) {
 
+  rc2osmKeyFeat<-list(
+    roads=list(key="highway",features=c('motorway',
+                                        'primary',
+                                        'secondary')),
+    body_of_water_rivers=list(key="waterway", features='rivers'),
+    body_of_water_streams=list(key="waterway", features='stream'),
+    body_of_water_canals=list(key="waterway", features='canal'),
+    railways=list(key="railway",features=''),
+    land_use=list(key="waterway", features=c('commercial',
+                                            'industrial',
+                                            'park',
+                                            'forest'))
+  )
+  
+  output$relConc<-renderUI({
+    shiny::selectInput("relConc","TELLme Related Concept", choices=names(rc2osmKeyFeat))
+  })
+  
   # output$feature <- renderUI({
   #   choices_osm_features <- available_features()
   #   selectizeInput("features","available features",choices = choices_osm_features)
@@ -94,26 +112,47 @@ shinyServer(function(input, output, session) {
     xmax <- input$bbxE
     ymax <- input$bbxN
     
-    browser()
+    #browser()
     bb <- c(xmin, ymin, xmax, ymax)
+    
     x <-
-      osmdata::opq(bbox = as.numeric(bb)) %>% # Chiswick Eyot in London, U.K.
+      osmdata::opq(bbox = as.numeric(bb)) %>% 
       add_osm_feature(key = 'highway', value = "primary") %>%
       add_osm_feature(key = 'highway', value = "secondary") %>%
       add_osm_feature(key = 'highway', value = "tertiary") %>%
-      osmdata_sf()
-    
-    # workaround for leaflet bug when geometry column is named
-    names(st_geometry(x$osm_lines)) <- NULL
-    names(st_geometry(x$osm_points)) <- NULL
-    names(st_geometry(x$osm_polygons)) <- NULL
-    
-    RV$lines <- x$osm_lines
-    RV$points <- x$osm_points
-    RV$polys <- x$osm_polygons
+      osmdata_sp()
     
     proxy <- leafletProxy("mapleaflet")
-    proxy %>% addPolygons(x$osm_lines)
+    # workaround for leaflet bug when geometry column is named
+    if(!is.null(x$osm_lines) && length(x$osm_lines)>0){
+      lines<-spTransform(x$osm_lines,CRSobj ="+init=epsg:4326")
+      
+      browser()
+      RV$lines <- raster::union(RV$lines, x$osm_lines)
+      
+      
+      proxy %>% leaflet::addPolygons(data=lines)
+      
+    }
+    # if(!is.null(x$osm_points) && length(x$osm_points)>0){
+    #   points<-spTransform(x$osm_points,CRSobj ="+init=epsg:4326")
+    #   #names(st_geometry(x$osm_points)) <- NULL
+    #   RV$points <- x$osm_points
+    #   proxy %>% leaflet::addPolygons(data=points)
+    # }
+    # if(!is.null(x$osm_polygons) && length(x$osm_polygons)>0){
+    #   polygons<-spTransform(x$osm_polygons,CRSobj ="+init=epsg:4326")
+    #   #names(st_geometry(x$osm_polygons)) <- NULL
+    #   RV$polys <- x$osm_polygons
+    #   proxy %>% leaflet::addPolygons(data=polygons)
+    # } 
+    
+    # RV$lines <- x$osm_lines
+    # RV$points <- x$osm_points
+    # RV$polys <- x$osm_polygons
+    
+    # proxy <- leafletProxy("mapleaflet")
+    # proxy %>% addPolygons(x$osm_lines)
   })
     
 })
