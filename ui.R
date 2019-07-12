@@ -27,7 +27,7 @@ choices_relatedConcepts <- list("Gray infrastructure - roads" = "roads")
 choices_scales <- list("XL", "L", "M")
 # Hp is to obtain these from a reactive value bound to osm available_features
 # choices_osmFeatures <- list("highway" = "highway", "streams" = "streams") 
-choices_osmFeatures <- osmdata::available_features()
+#choices_osmFeatures <- osmdata::available_features()
 
 
 # choices_osmTags <- NULL
@@ -95,30 +95,38 @@ dashboardPagePlus(
             fluidRow(
               column(
                 width = 3,
+                offset=1,
                 # fileInput("file1", "Choose Digital Elevation Model File (raster image)",
                 #           multiple = FALSE, accept = c("*/*","*,*",".*"))
                 #selectInput("relatedconcept", "choose related concept", choices = choices_relatedConcepts)
                 uiOutput("relConc")
                 
                ),
-              column(width = 3,
-                     selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
-                     ),
+              # column(
+              #   width = 3,
+              #   selectInput("scale", "choose scale", choices = choices_scales)
+              # ),
+              # column(width = 3,
+              #        selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
+              #        ),
               column(width = 3,
                      uiOutput("tags")
                      #selectizeInput("tags","available tags",choices = choices_osmTags,multiple = TRUE)
-              ),
-              column(
-                width = 3,
-                selectInput("scale", "choose scale", choices = choices_scales)
               )
+
             ),
             fluidRow(
               column(
-                width = 5,
+                offset=1,
+                width = 4,
                 style = "text-align:left",
                 actionButton("downloadOverpass", "obtain data for Related Concept")
               ),
+              # column(
+              #   width = 2,
+              #   style = "text-align:left",
+              #   actionButton("reset", "clear map")
+              # ),
               column(
                 offset = 1,
                 width = 3,
@@ -126,7 +134,7 @@ dashboardPagePlus(
                 disabled(actionButton("doPlotMap", "Compute and plot output map",icon("cog")))
               ),
               column(
-                width = 3,
+                width = 2,
                 style = "text-align:right;",
                 disabled(downloadButton("downloadShapeFile", "Download result"))
               )
@@ -141,13 +149,16 @@ dashboardPagePlus(
           boxPlus(
             width = 12,
             fluidRow(
+              column(width=12, textOutput("bbx")),
               #column(width = 12,textInput("debug","debug")),
                 column(width = 3, style = "text-align:left", textInput("bbxN", "NW-lat")),
                 column(width = 3, style = "text-align:left", textInput("bbxW", "NW-lon")),
                 column(width = 3, style = "text-align:left", textInput("bbxS", "SE-lat")),
                 column(width = 3, style = "text-align:left", textInput("bbxE","SE-lon"))
             )
+            
           )
+          
         
           
         )#end fluidRow
