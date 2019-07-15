@@ -93,9 +93,9 @@ shinyServer(function(input, output, session) {
   
   # the following is lazy and cached. It is reactive: it is notified when its dependencies change
   bbx<-reactive({
-    # it is the same:
+    # it is the same to explicitly return the value:
     # return(c(BBX$W, BBX$S, BBX$E, BBX$N))
-    # or:
+    # or to simply end the expression with:
     c(BBX$W, BBX$S, BBX$E, BBX$N)
   })
   
@@ -233,7 +233,7 @@ shinyServer(function(input, output, session) {
       # }
       
       if(!is.na(match("polygons",type)) && !is.null(x$osm_polygons) && length(x$osm_polygons)>0){
-        browser()
+        #browser()
         polygons<-spTransform(x$osm_polygons,CRSobj ="+init=epsg:4326")
         
         RV$layers[selectedConcept]<-polygons
@@ -250,8 +250,9 @@ shinyServer(function(input, output, session) {
   
   observe({
     #lookup layer type
+    
     for(rc in names(RV$layers)){
-      browser()
+      #browser()
       osmdata<-RV$layers[[rc]]
         
       key<-rc2osmKeyFeat[[rc]]$key
@@ -261,18 +262,69 @@ shinyServer(function(input, output, session) {
       
       proxy <- leafletProxy("mapleaflet")
       if(!is.na(match("lines",type))){
-        proxy %>% leaflet::addPolylines(data=osmdata)
+        proxy %>% leaflet::addPolylines(data=osmdata, weight=2, color=color, group = rc)
       }
       if(!is.na(match("polygons",type))){
-        proxy %>% leaflet::addPolygons(data=osmdata)
+        proxy %>% leaflet::addPolygons(data=osmdata, color=color, group = rc)
       }
+      proxy %>% addLayersControl(overlayGroups = names(RV$layers))
       
       
     }
     #plot layer
   })
+  
   # observe({
   #   osmlayers$layers[selected]
   # })
+  bbx_concat<-reactive({
+    paste(bbx(),sep="_",collapse="_")
+  })
   
+  # current assetname without any extension (it is composed by the layers names - relatedConcepts - and the bounding box)
+  assetname<-reactive({
+    paste(names(RV$layers),"bbx",bbx_concat(),sep = "_")
+  })
+  
+  observeEvent(assetname(),{enable("downloadShapeFiles")})
+  
+  output$downloadShapeFiles<-downloadHandler(
+    filename=paste(assetname(),"zip", sep="."), # .zip extension is added here...
+    content=function(file){
+      #fs<-c() # array of filenames. Is it useful here?
+      tmpdir<-tempdir() # e.g. "/var/folders/74/0djbrhs173376yz5pmdwdlr00000gn/T//RtmpDMosAR" note: it is for the entire session. Subsequent calls to the method do not change the path.
+      
+      # metto i file shape in una sottodir di tempdir, che ha il nome dell'asset
+      # subdir of tmpdir: it contains all the shapefiles.
+      tmpshapedir=paste(tempdir(),assetname(),sep="/") # I can use the assetname for the subfolder with temporary shapefiles too.
+      
+      browser()
+      
+      #remove any pre-existing file from the folder
+      unlink(paste(tmpshapedir,"*",sep="/"))
+             
+      #zipname<-paste(assetname(),"zip",sep=".")
+      
+      #tmpzipdir could be the same tmpdir. The zip archive will be named with the assetname.
+      # at the end we will have: tmpdir/<asset>/
+      ##                          tmpdir/<asset>.zip
+      
+      #setwd(tmpdir)
+      for(curlayer_name in names(RV$layers)){
+        curlayer<-RV$layers[[curlayer_name]]
+        #fs<-c(fs,curlayer_name) # is this useful here?
+        rgdal::writeOGR(obj=curlayer, dsn=tmpshapedir, layer=curlayer_name, driver="ESRI Shapefile")
+      }
+      
+      zip(zipfile=file #paste(tmpdir,zipname,sep="/")
+          ,files=paste(tmpshapedir,dir(path=tmpshapedir),sep="/"))
+      
+      # can we make a loop here, produce the shapes, zip them and send the zip as the content?
+      
+      
+      #writeRaster(currentProcessedRaster(),file, datatype = "INT1U", options=c("COMPRESSION=DEFLATE"))
+    },
+    contentType = "application/zip"
+  )
+
 })

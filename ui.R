@@ -136,7 +136,7 @@ dashboardPagePlus(
               column(
                 width = 2,
                 style = "text-align:right;",
-                disabled(downloadButton("downloadShapeFile", "Download result"))
+                disabled(downloadButton("downloadShapeFiles", "Download results"))
               )
             )
           ),
