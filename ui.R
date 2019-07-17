@@ -55,7 +55,11 @@ dashboardPagePlus(
     # sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
     # sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
     # sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45)
-    
+    textOutput("log"),
+    numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
+    textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical"),
+    textAreaInput(inputId="errorlog", label="reported issues", resize="vertical")
+
   ),
   sidebar = dashboardSidebar(
     collapsed = FALSE,
@@ -127,13 +131,14 @@ dashboardPagePlus(
               #   style = "text-align:left",
               #   actionButton("reset", "clear map")
               # ),
+              # column(
+              #   offset = 1,
+              #   width = 3,
+              #   style = "text-align:left;",
+              #   disabled(actionButton("doPlotMap", "Compute and plot output map",icon("cog")))
+              # ),
               column(
-                offset = 1,
-                width = 3,
-                style = "text-align:left;",
-                disabled(actionButton("doPlotMap", "Compute and plot output map",icon("cog")))
-              ),
-              column(
+                offset=3,
                 width = 2,
                 style = "text-align:right;",
                 disabled(downloadButton("downloadShapeFiles", "Download results"))
