@@ -13,7 +13,7 @@ library(sf)
 library(sp)
 library(leaflet)
 library(leaflet.extras)
-library(mapview)
+#library(mapview)
 
 
 shinyServer(function(input, output, session) {
