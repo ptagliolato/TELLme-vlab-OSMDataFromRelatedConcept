@@ -131,7 +131,7 @@ shinyServer(function(input, output, session) {
   observe({
     headings<-paste("Overpass API query composed for TELLme relatedConcept", names(RV$queries))
     output<-paste(headings, paste(RV$queries), sep=" \n-----\n ", collapse="\n*****\n")
-    updateTextAreaInput(session, inputId = "overpass_query" , "", value = output)
+    updateTextAreaInput(session, inputId = "overpass_query" , value = output)
   })
     
   # download button is enabled according to RV$layersPresent boolean value
@@ -243,91 +243,147 @@ shinyServer(function(input, output, session) {
     progress <- shiny::Progress$new()
     # Make sure it closes when we exit this reactive, even if there's an error
     on.exit(progress$close())
-    progress$set(message = "Retrieving data...", value = 0)
-    i = 0
-    osmdata::overpass_status()
+    progress$set(message = "Processing request", value = 0)
+    #i = 0
+    
+    errorRaised<-FALSE
+    logstring<-c()
+    logger$logger<-c(osmdata::overpass_status(),paste("OSM data download for bounding box: ",bbx()))
+    increment<-1/(length(selectedConcepts)*3) # 2 steps for each concept: download and reproject
     for (selectedConcept in selectedConcepts) {
-      i = i + 1
-      # ...progress:
-      progress$inc(
-        i / length(selectedConcepts),
-        detail = paste("...retrieving OSM data for", selectedConcept)
-      )
-      
-      # presets for the current selectedConcept
-      key <- rc2osmKeyFeat[[selectedConcept]]$key
-      features <- rc2osmKeyFeat[[selectedConcept]]$features
-      type <- rc2osmKeyFeat[[selectedConcept]]$type
-      color <- rc2osmKeyFeat[[selectedConcept]]$color
-      
-      # ...ok , let's retrieve data
-      if (!is.na(features)) {
-        try({
-          q <- osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
-            add_osm_feature(key = key, value = features)
-        })
-      }
-      else{
-        try({
-          q <-
-            osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
-            add_osm_feature(key = key) 
-        })
-      }
-      
-      string_osm_query<-osmdata::opq_string(q)
-      RV$queries[selectedConcept] <- string_osm_query
-      
-      # progress
-      progress$inc(
-        i / length(selectedConcepts) + 0.01 * i,
-        detail = paste("...processing", selectedConcept)
-      )
-      
-      try({
-        x <- q %>% osmdata_sp()
-      })
-      
+      errorRaised<-TRUE
+      ####
       tryCatch(
-        {x <- q %>% osmdata_sp()},
-        warning=function(w){
-          output<-w
-          updateTextAreaInput(session, inputId = "errorlog" , "", value = output)
+        {
+          ####
+          #i = i + 1
+          # ...progress:
+          progress$inc(
+            increment,
+            detail = paste(selectedConcept,": retrieving OSM data..." )
+          )
+          
+          # presets for the current selectedConcept
+          key <- rc2osmKeyFeat[[selectedConcept]]$key
+          features <- rc2osmKeyFeat[[selectedConcept]]$features
+          type <- rc2osmKeyFeat[[selectedConcept]]$type
+          color <- rc2osmKeyFeat[[selectedConcept]]$color
+          
+          # ...ok , let's retrieve data
+          if (!is.na(features)) {
+            
+            q <- osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
+              add_osm_feature(key = key, value = features)
+            
+          }
+          else{
+            
+            q <-
+              osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
+              add_osm_feature(key = key) 
+            
+          }
+          
+          string_osm_query<-osmdata::opq_string(q)
+          RV$queries[selectedConcept] <- string_osm_query
+          
+          # progress
+          progress$inc(
+            increment,
+            detail = paste(selectedConcept,": elaborating data..." )
+          )
+          
+          # tryCatch(
+          #   {
+          
+          # x_xml<-q %>% osmadata_xml(filename=tempfile())
+          # RV$xml[selectedConcept]<-x_xml
+          
+          x <- q %>% osmdata_sp()
+          
+          #   },
+          #   warning=function(w){
+          #     output<-w
+          #     logstring<-c(logstring,output)
+          #     updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
+          #   },
+          #   error=function(e){
+          #     output<-e
+          #     logstring<-c(logstring,output)
+          #     updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
+          #   },
+          #   finally={
+          #     #output<-paste("-----\n\ndownloaded data summary:\n",summary(x),sep="\n")
+          #     output<-paste("----\nquery terminated for",selectedConcept,"\n---\n")
+          #     logstring<-c(logstring,output)
+          #     updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
+          #   }
+          # )
+          
+          if (!is.na(match("lines", type)) &&
+              !is.null(x$osm_lines) && length(x$osm_lines) > 0) {
+            # in order to correctly plot the layer in the leaflet component, we must reproject the data.
+            
+            progress$inc(
+              increment,
+              detail = paste(selectedConcept,": reprojecting data" )
+            )
+            
+            
+            lines <- spTransform(x$osm_lines, CRSobj = "+init=epsg:4326")
+            RV$layers[selectedConcept] <- lines
+          }
+          
+          if (!is.na(match("polygons", type)) &&
+              !is.null(x$osm_polygons) && length(x$osm_polygons) > 0) {
+            # in order to correctly plot the layer in the leaflet component, we must reproject the data.
+            polygons <-
+              spTransform(x$osm_polygons, CRSobj = "+init=epsg:4326")
+            RV$layers[selectedConcept] <- polygons
+          }
+          errorRaised<-FALSE
+          ##
         },
+        # warning=function(w){
+        #   output<-c("warning",w)
+        #   browser()
+        #   #logstring<-paste(c(logstring,paste(output,sep=";",collapse="\n")))
+        #   logger$logger<-c(logger$logger,w)
+        #   #updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
+        # },
         error=function(e){
-          output<-e
-          updateTextAreaInput(session, inputId = "errorlog" , "", value = output)
+          cat(paste(e))
+          
+          output<-c(paste("*** An error occurred while processing", selectedConcept),e)
+          #browser()
+          #logstring<-c(logstring,paste(output,sep=";",collapse="\n"))
+          logger$logger<-c(logger$logger,output)
+          #updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
         },
         finally={
-          output<-paste("-----\n\ndownloaded data summary:\n",summary(x),sep="\n")
-          updateTextAreaInput(session, inputId = "errorlog" , "", value = output)
+          msg=""
+          if(errorRaised){
+            output<-paste("Process failed for:",selectedConcept)
+          }
+          else{
+            output<-paste("Process succeeded for:",selectedConcept)
+          }
+          #logstring<-c(logstring,paste(output,sep=";",collapse="\n"))
+          logger$logger<-c(logger$logger,output)
+          #updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
         }
       )
-      
-      if (!is.na(match("lines", type)) &&
-          !is.null(x$osm_lines) && length(x$osm_lines) > 0) {
-        # in order to correctly plot the layer in the leaflet component, we must reproject the data.
-        
-        progress$inc(
-          i / length(selectedConcepts) + 0.05*i,
-          detail = paste("...reprojecting data related to", selectedConcept)
-        )
-        
-        lines <- spTransform(x$osm_lines, CRSobj = "+init=epsg:4326")
-        RV$layers[selectedConcept] <- lines
-      }
-      
-      if (!is.na(match("polygons", type)) &&
-          !is.null(x$osm_polygons) && length(x$osm_polygons) > 0) {
-        # in order to correctly plot the layer in the leaflet component, we must reproject the data.
-        polygons <-
-          spTransform(x$osm_polygons, CRSobj = "+init=epsg:4326")
-        RV$layers[selectedConcept] <- polygons
-      }
+      ##
     }
     RV$layersPresent <- TRUE
   })
   
+  logger<-reactiveValues(logger=c())
+  
+  observe({
+    logstring<-paste(logger$logger,sep="; ", collapse="\n------\n")
+    updateTextAreaInput(session, inputId = "errorlog" , "log", value = logstring)
+  })
   # plot downloaded data.
   observe({
     #lookup layer type
