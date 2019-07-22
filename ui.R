@@ -30,12 +30,22 @@ choices_scales <- list("XL", "L", "M")
 #choices_osmFeatures <- osmdata::available_features()
 
 
+
+panels.about<-div(style="padding:1em;",
+                    shiny::helpText(
+                      h4("Description"),p("This application exploits the third-party service overpass API to download OSM data in form of shapefiles (within zip archive)."),
+                      h4("Usage"), p("Select a bounding box, then one or more TELLme related concepts.",
+                                     "Click \"Obtain data for related concept\" and evaluate the retrieved geographical features.",
+                                     "When you are satisfied with the selection, click the \"Download results\" button to obtain a zip archive with a shapefile per related concept." )
+                      ,h4("Credits"), p("Application developed for the TELLme ERASMUS+ project, O4. See"),a("source code repository on github",href="https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept")
+                    )
+              )
 # choices_osmTags <- NULL
 
 dashboardPagePlus(
   skin = "black-light",
   collapse_sidebar = FALSE,
-  # sidebar_fullCollapse = TRUE,
+  sidebar_fullCollapse = TRUE,
   dashboardHeaderPlus(
     title = tagList(
       tags$div(class = "logo-lg",
@@ -48,100 +58,111 @@ dashboardPagePlus(
     ,enable_rightsidebar = TRUE,
     rightSidebarIcon = "gears"
   ),
-  rightsidebar = rightSidebar(
-    #fileInput("file1", "Choose Digital Elevation Model File (raster image)",
-    #                      multiple = FALSE, accept = c("*/*", "*,*", ".*")),
-    #            selectInput("mode", "choose mode", choices = choices),
-    # sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
-    # sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
-    # sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45)
-    textOutput("log"),
-    numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
-    textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical"),
-    textAreaInput(inputId="errorlog", label="reported issues", resize="vertical")
-
-  ),
-  sidebar = dashboardSidebar(
-    collapsed = FALSE,
-    disable = FALSE,
-    width = 0,
-    sidebarMenu(
-      menuItem("Elaboration", tabName = "site", icon = icon("map", lib = "font-awesome"))
-      #menuItem("Map", tabName = "map", icon = icon("map", lib = "font-awesome"))
-      # ,
-      # dropdownBlock(
-      #   fileInput("file1", "Choose Digital Elevation Model File (raster image)",
-      #             multiple = FALSE, accept = c("*/*","*,*",".*")),
-      #   selectInput("mode", "choose mode", choices = choices),
-      #   sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
-      #   sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
-      #   sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45),
-      #   id = "ss", icon = icon("map", lib = "font-awesome"), title = "inputs"
-      # )
+  rightsidebar = rightSidebar( 
+    rightSidebarTabContent(id="help", icon="info", title="About", active = TRUE, panels.about),
+    rightSidebarTabContent(id="controls",icon="gear",title = "Settings",
+      numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
+      textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical", height = 300)
+    ),
+    rightSidebarTabContent(id="troubleshooting", icon="fire-extinguisher", title="Troubleshooting",
+      textAreaInput(inputId="errorlog", label="reported issues", resize="vertical"),
+      shiny::helpText(p(style="font-size:smaller;",
+        "If you incur in any issue, please check the \"log\" box here provided.",
+        "The most common problems are due to the remote overpass service.",
+        "You can try to extend the timeout (the time while the application waits for the remote service to answer with data) with the following numeric control.",
+        "Note that the bigger the bounding box you select, the longer the time the application needs to wait the results for.",
+        "Note also that not all the requests can be handled by the remote service (e.g. too big bounding boxes).",
+        "If, after having extended the timeout, you cannot see the expected results,", 
+        "you can also copy-paste the query composed by this application from the \"overpass generated query\" box",
+        "and you can use it to directly invoke the remote API, via the",
+        #"<a href=\"https://overpass-turbo.eu/\">overpass-turbo</a>",
+        a("overpass-turbo",href="https://overpass-turbo.eu"),
+        "web application, or via a terminal using CURL program."))
     )
+  ),
+  sidebar = 
+    # dashboardSidebar(
+    #   disable = FALSE,collapsed = FALSE,
+    #   sidebarMenu(menuItem("Map", tabname="site"))
+    #   #div(style="padding:1em;",
+    #       # shiny::helpText(
+    #       #   h4("Description"),p("This application exploits the third-party service overpass API to download OSM data in form of shapefiles (within zip archive)."),
+    #       #   h4("Usage"), p("Select a bounding box, then one or more TELLme related concepts.", 
+    #       #                  "Click \"Obtain data for related concept\" and evaluate the retrieved geographical features.", 
+    #       #                  "When you are satisfied with the selection, click the \"Download results\" button to obtain a zip archive with a shapefile per related concept." )
+    #       #   ,h4("Credits"), p("Application developed for the TELLme ERASMUS+ project, O4. See"),a("source code repository on github",href="https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept")
+    #       # )
+    #   #)
+    #),
+    dashboardSidebar(
+      collapsed = TRUE,
+      disable = TRUE,
+      width = 0,
+      sidebarMenu(
+        menuItem("Elaboration", tabName = "site", icon = icon("map", lib = "font-awesome"))
+        #menuItem("About", tabName = "about", icon = icon("info", lib = "font-awesome"))
+        #menuItem("Map", tabName = "map", icon = icon("map", lib = "font-awesome"))
+        # ,
+        # dropdownBlock(
+        #   fileInput("file1", "Choose Digital Elevation Model File (raster image)",
+        #             multiple = FALSE, accept = c("*/*","*,*",".*")),
+        #   selectInput("mode", "choose mode", choices = choices),
+        #   sliderInput("z", "Vertical exaggeration", min = 1, max = 50, value = 1),
+        #   sliderInput("az", "Azimuth of the light", min = 1, max = 360, value = 315),
+        #   sliderInput("alt", "Altitude of the light", min = 0, max = 90, value = 45),
+        #   id = "ss", icon = icon("map", lib = "font-awesome"), title = "inputs"
+        # )
+      )
   ),
   
   body = dashboardBody(
     useShinyjs(),
-    
     tabItems(
       tabItem(
         tabName = "site",
         fluidRow(
-          
           boxPlus(# inputs menu
             width = 12,
             #title = "input",
             background = "light-blue",
             closable = FALSE, status = "primary", solidHeader = FALSE, collapsible = FALSE,
-            #enable_sidebar = FALSE,
+            enable_sidebar = FALSE,
             #style = "background-color:black; color:white; padding: 0 10px;",
             fluidRow(
               column(
-                width = 3,
+                width = 11,
                 offset=1,
                 # fileInput("file1", "Choose Digital Elevation Model File (raster image)",
                 #           multiple = FALSE, accept = c("*/*","*,*",".*"))
                 #selectInput("relatedconcept", "choose related concept", choices = choices_relatedConcepts)
                 uiOutput("relConc")
-                
-               ),
-              # column(
-              #   width = 3,
-              #   selectInput("scale", "choose scale", choices = choices_scales)
-              # ),
+               )
+              # ,
+              # # column(
+              # #   width = 3,
+              # #   selectInput("scale", "choose scale", choices = choices_scales)
+              # # ),
+              # # column(width = 3,
+              # #        selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
+              # #        ),
               # column(width = 3,
-              #        selectizeInput("features", "available features", choices = choices_osmFeatures, multiple = FALSE)
-              #        ),
-              column(width = 3,
-                     uiOutput("tags")
-                     #selectizeInput("tags","available tags",choices = choices_osmTags,multiple = TRUE)
-              )
+              #        uiOutput("tags")
+              #        #selectizeInput("tags","available tags",choices = choices_osmTags,multiple = TRUE)
+              # )
 
             ),
             fluidRow(
               column(
                 offset=1,
-                width = 4,
+                width = 5,
                 style = "text-align:left",
-                actionButton("downloadOverpass", "obtain data for Related Concept")
+                actionButton("downloadOverpass", "Obtain data for Related Concept")
               ),
-              # column(
-              #   width = 2,
-              #   style = "text-align:left",
-              #   actionButton("reset", "clear map")
-              # ),
-              # column(
-              #   offset = 1,
-              #   width = 3,
-              #   style = "text-align:left;",
-              #   disabled(actionButton("doPlotMap", "Compute and plot output map",icon("cog")))
-              # ),
               column(
-                offset=3,
-                width = 2,
+                offset=0,
+                width = 6,
                 style = "text-align:right;",
-                disabled(downloadButton("downloadShapeFiles", "Download results"))
+                disabled(downloadButton("downloadShapeFiles", "Download results",width=6))
               )
             )
           ),
