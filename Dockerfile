@@ -1,7 +1,7 @@
 from ptagliolato/r-spatial-base:1.0.0
-
-COPY ui.R root/TELLme-vlab-OSMDataFromRelatedConcept
-COPY server.R root/TELLme-vlab-OSMDataFromRelatedConcept
+#RUN mkdir /root/TELLme-vlab-OSMDataFromRelatedConcept
+COPY ui.R root/TELLme-vlab-OSMDataFromRelatedConcept/ui.R
+COPY server.R root/TELLme-vlab-OSMDataFromRelatedConcept/server.R
 COPY Rprofile.site /usr/lib/R/etc/
 
 EXPOSE 3838
