@@ -1,4 +1,4 @@
-from ptagliolato/r-base-spatial:1.0.0
+from ptagliolato/r-spatial-base:1.0.0
 
 COPY ui.R root/TELLme-vlab-OSMDataFromRelatedConcept
 COPY server.R root/TELLme-vlab-OSMDataFromRelatedConcept
