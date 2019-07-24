@@ -1,0 +1,34 @@
+proxy:
+  port: 8080
+  authentication: simple
+  admin-groups: admins
+  users:
+#simple auth. Specify users and passwords
+  - name: adminuser1
+    password: admin1password
+    groups: admins
+  - name: user1
+    password: user1password
+  docker:
+      internal-networking: true
+# applications. Execute docker pull <image> before running shiny proxy container.
+  specs:
+  - id: TELLme2OSM
+    display-name: TELLmeConcept2OSM
+    container-cmd: ["R","-e", "shiny::runApp('/root/TELLme-vlab-OSMDataFromRelatedConcept')"]
+    container-image: ptagliolato/tellme-vlab:osm.1.0.0
+    container-network: sp-example-net
+#  - id: TELLme2OSM
+#    display-name: TELLmeConcepts2OSM_oldversion
+#    description: Application to retrieve OSM layers for specific TELLme Concepts
+#    container-image: ptagliolato/shinyproxy-tellme-vlab-osmdatafromrelatedconcept:1.0.0 
+#    container-network: sp-example-net
+#    access-groups: admins
+  - id: 06_tabsets
+    container-cmd: ["R", "-e", "shinyproxy::run_06_tabsets()"]
+    container-image: openanalytics/shinyproxy-demo
+    container-network: sp-example-net
+
+logging:
+  file:
+    shinyproxy.log
