@@ -1,4 +1,4 @@
-from ptagliolato/r-spatial-base:1.0.0
+FROM ptagliolato/r-spatial-base:1.0.0
 #RUN mkdir /root/TELLme-vlab-OSMDataFromRelatedConcept
 COPY ui.R root/TELLme-vlab-OSMDataFromRelatedConcept/ui.R
 COPY server.R root/TELLme-vlab-OSMDataFromRelatedConcept/server.R
