@@ -11,8 +11,10 @@ library(shiny)
 library(osmdata)
 library(sf)
 library(sp)
+library(rgdal)
 library(leaflet)
 library(leaflet.extras)
+library(geosapi) #libreria per accesso a geoserver API
 #library(mapview)
 
 
@@ -34,10 +36,21 @@ shinyServer(function(input, output, session) {
         key = "highway",
         features = c('motorway',
                      'primary',
-                     'secondary'),
+                     'secondary',
+                     'trunk',
+                     'motorway_link',
+                     'primary_link',
+                     'secondary_link',
+                     'trunk_link'
+                     ),
         type = c("lines"),
         color = mygrays[8]
       ),
+      # TODO: mancano ancora: 
+      # body_of_water_lakes, 
+      # body_of_water_rivers, 
+      # body_of_water_wetlands,
+      # body_of_water_springs, 
       body_of_water_rivers = list(
         key = "waterway",
         features = 'rivers',
@@ -70,7 +83,59 @@ shinyServer(function(input, output, session) {
                      'forest'),
         type = c("polygons"),
         color = mycolors[7]
+      ),
+      recycling_points=list(
+        key="amenity",
+        features=c('recycling'),
+        type=c("points"),
+        color=mycolors[7]
+      ),
+      archelogical_sites=list(
+        key="historic",
+        features=c('archaeological_site'),
+        type=c("points"),
+        color=mycolors[]
+      ),
+      belvedere=list(
+        key="tourism",
+        features=c('viewpoint'),
+        type=c("points"),
+        color=mycolors[]
+      ),
+      # landmark_and_monuments=list(
+      #   key="",
+      #   features=c(''),
+      #   type=c("points"),
+      #   color=mycolors[]
+      # ),
+      market_global=list(
+        key="amenity",
+        features=c('marketplace'),
+        type=c("points"),
+        color=mycolors[]
+      ),
+      # NOTE: very massive data. It must be limited.
+      built_up_area=list(
+        key="building",
+        features=c(''),
+        type=c("polygons"),
+        color=mycolors[]
+      ),
+      water_harvesting=list(
+        key="man_made",
+        features=c('water_tower','storage_tank'),
+        type=c("points"),
+        color=mycolors[]
+      ),
+      educational_institutes=list(
+        key="amenity",
+        features=c('college','kindergarden','language_school','library','school','university'),
+        type=c("polygons"),
+        color=mycolors[]
       )
+      
+      
+      
     )
     
     
@@ -320,6 +385,28 @@ shinyServer(function(input, output, session) {
           #   }
           # )
           
+          # string for CRS settings
+          epsg=4326
+          #epsg=3857
+          CRS=paste("+init=epsg:",epsg,sep="")
+          
+          ####
+          if (!is.na(match("points", type)) &&
+              !is.null(x$osm_points) && length(x$osm_points) > 0) {
+            # in order to correctly plot the layer in the leaflet component, we must reproject the data.
+            
+            progress$inc(
+              increment,
+              detail = paste(selectedConcept,": reprojecting data" )
+            )
+            
+            points <- spTransform(x$osm_points, CRSobj = CRS)
+            RV$layers[selectedConcept] <- points
+          }
+          
+          
+          ####
+          
           if (!is.na(match("lines", type)) &&
               !is.null(x$osm_lines) && length(x$osm_lines) > 0) {
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
@@ -329,8 +416,7 @@ shinyServer(function(input, output, session) {
               detail = paste(selectedConcept,": reprojecting data" )
             )
             
-            
-            lines <- spTransform(x$osm_lines, CRSobj = "+init=epsg:4326")
+            lines <- spTransform(x$osm_lines, CRSobj = CRS)
             RV$layers[selectedConcept] <- lines
           }
           
@@ -338,7 +424,7 @@ shinyServer(function(input, output, session) {
               !is.null(x$osm_polygons) && length(x$osm_polygons) > 0) {
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             polygons <-
-              spTransform(x$osm_polygons, CRSobj = "+init=epsg:4326")
+              spTransform(x$osm_polygons, CRSobj = CRS)
             RV$layers[selectedConcept] <- polygons
           }
           errorRaised<-FALSE
@@ -401,6 +487,19 @@ shinyServer(function(input, output, session) {
       color <- rc2osmKeyFeat[[rc]]$color
       
       proxy <- leafletProxy("mapleaflet")
+      
+      ######
+      if (!is.na(match("points", type))) {
+        proxy %>% leaflet::addCircles(
+          data = osmdata,
+          weight = 2,
+          color = color,
+          group = rc
+        )
+      }
+      #####
+      
+      
       if (!is.na(match("lines", type))) {
         proxy %>% leaflet::addPolylines(
           data = osmdata,
@@ -428,9 +527,10 @@ shinyServer(function(input, output, session) {
   #output$log<-renderText({assetname()})
   
   output$downloadShapeFiles <- downloadHandler(
-    filename = paste(isolate(assetname()), "shapefiles", "zip", sep = "."),
+    filename = function(){paste(assetname(), "shapefiles", "zip", sep = ".")}, # it seems that the reactive is not good here: the name is missing all info but "bbx"
     # .zip extension is added here...
     content = function(file) {
+      browser()
       #fs<-c() # array of filenames. Is it useful here?
       tmpdir <-
         tempdir() # e.g. "/var/folders/74/0djbrhs173376yz5pmdwdlr00000gn/T//RtmpDMosAR" note: it is for the entire session. Subsequent calls to the method do not change the path.
