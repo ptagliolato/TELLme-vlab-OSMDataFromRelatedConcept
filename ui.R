@@ -134,15 +134,16 @@ dashboardPagePlus(
             fluidRow(
               column(
                 offset=1,
-                width = 5,
+                width = 2,
                 style = "text-align:left",
                 actionButton("downloadOverpass", "Obtain data for Related Concept")
               ),
               column(
                 offset=0,
-                width = 6,
+                width = 5,
                 style = "text-align:right;",
-                disabled(downloadButton("downloadShapeFiles", "Download results",width=6))
+                disabled(downloadButton("downloadShapeFiles", "Download results",width=6)),
+                disabled(actionButton("uploadToGetIt", "Upload to TELLme HUB"))
               )
             )
           ),

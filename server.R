@@ -464,12 +464,15 @@ shinyServer(function(input, output, session) {
     RV$layersPresent <- TRUE
   })
   
+  #
+  # log
+  #
   logger<-reactiveValues(logger=c())
-  
   observe({
     logstring<-paste(logger$logger,sep="; ", collapse="\n------\n")
     updateTextAreaInput(session, inputId = "errorlog" , "log", value = logstring)
   })
+
   # plot downloaded data.
   observe({
     #lookup layer type
@@ -523,15 +526,12 @@ shinyServer(function(input, output, session) {
     paste(paste(names(RV$layers), collapse = "-"), "bbx", bbx_concat(), sep = "_")
   })
   
-  
-  #output$log<-renderText({assetname()})
-  
+  # download shape files
+  # TODO: insert uploading to geoserver and get-it here (?)
   output$downloadShapeFiles <- downloadHandler(
-    filename = function(){paste(assetname(), "shapefiles", "zip", sep = ".")}, # it seems that the reactive is not good here: the name is missing all info but "bbx"
-    # .zip extension is added here...
+    filename = function(){paste(assetname(), "zip", sep = ".")},# .zip extension is added here...
     content = function(file) {
-      browser()
-      #fs<-c() # array of filenames. Is it useful here?
+      
       tmpdir <-
         tempdir() # e.g. "/var/folders/74/0djbrhs173376yz5pmdwdlr00000gn/T//RtmpDMosAR" note: it is for the entire session. Subsequent calls to the method do not change the path.
       
@@ -561,6 +561,8 @@ shinyServer(function(input, output, session) {
       }
       
       fileslist <- list.files(path = tmpshapedir, full.names = TRUE)
+      
+      # TODO: check how many zip files. For the upload to geoserver/get-it there must be as many zip as the layers
       zip(zipfile = file #paste(tmpdir,zipname,sep="/")
           ,
           files = fileslist,
