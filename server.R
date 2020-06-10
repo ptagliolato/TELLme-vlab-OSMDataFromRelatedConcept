@@ -25,6 +25,27 @@ shinyServer(function(input, output, session) {
     myblues <- RColorBrewer::brewer.pal(9, name = "Blues")
     mygrays <- RColorBrewer::brewer.pal(11, "RdGy")
     
+    set_overpass_url("https://overpass-api.de/api/interpreter")
+    
+    #
+    # curl http://tellmehub.get-it.it/api/keywords/ | jq -r '.objects[] | [.slug, .name] | @csv' | grep concept
+    rc2concept_id<-list(roads=1,
+                  body_of_water_rivers=2,
+                  body_of_water_streams=3,
+                  body_of_water_canals=4,
+                  railways=5,
+                  land_use=6,
+                  recycling_points=7,
+                  archelogical_sites=8,
+                  belvedere=9,
+                  market_global=10,
+                  built_up_area=11,
+                  water_harvesting=12,
+                  educational_institutes=13
+                  )
+    
+    
+    
     # list of lists. The named list contains the related concepts.
     # To each (named) relatedConcept corresponds a list of the following (named) items:
     #   key: OSM key
@@ -35,16 +56,20 @@ shinyServer(function(input, output, session) {
       roads = list(
         key = "highway",
         features = c('motorway',
-                     'primary',
-                     'secondary',
-                     'trunk',
-                     'motorway_link',
-                     'primary_link',
-                     'secondary_link',
-                     'trunk_link'
-                     ),
+          'primary',
+          'secondary',
+          'tertiary',
+          'trunk',
+          'motorway_link',
+          'primary_link',
+          'secondary_link',
+          'tertiary_link',
+          'trunk_link',
+          'residential'
+        ),
         type = c("lines"),
-        color = mygrays[8]
+        color = mygrays[8],
+        conceptId = 1
       ),
       # TODO: mancano ancora: 
       # body_of_water_lakes, 
@@ -55,25 +80,29 @@ shinyServer(function(input, output, session) {
         key = "waterway",
         features = 'rivers',
         type = c("lines"),
-        color = myblues[9]
+        color = myblues[9],
+        conceptId=11
       ),
       body_of_water_streams = list(
         key = "waterway",
         features = 'stream',
         type = c("lines"),
-        color = myblues[7]
+        color = myblues[7],
+        conceptId=12
       ),
       body_of_water_canals = list(
         key = "waterway",
         features = 'canal',
         type = c("lines"),
-        color = myblues[5]
+        color = myblues[5],
+        conceptId=119
       ),
       railways = list(
         key = "railway",
         features = NA,
         type = c("lines"),
-        color = mygrays[10]
+        color = mygrays[10],
+        conceptId=24
       ),
       land_use = list(
         key = "landuse",
@@ -82,63 +111,71 @@ shinyServer(function(input, output, session) {
                      'park',
                      'forest'),
         type = c("polygons"),
-        color = mycolors[7]
+        color = mycolors[7],
+        conceptId=26
       ),
       recycling_points=list(
         key="amenity",
         features=c('recycling'),
         type=c("points"),
-        color=mycolors[7]
+        color=mycolors[7],
+        conceptId=111
       ),
       archelogical_sites=list(
         key="historic",
         features=c('archaeological_site'),
         type=c("points"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=94
       ),
       belvedere=list(
         key="tourism",
         features=c('viewpoint'),
         type=c("points"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=29
       ),
       # landmark_and_monuments=list(
       #   key="",
       #   features=c(''),
       #   type=c("points"),
-      #   color=mycolors[]
+      #   color=mycolors[],
+      #   conceptId=119
       # ),
       market_global=list(
         key="amenity",
         features=c('marketplace'),
         type=c("points"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=64
       ),
       # NOTE: very massive data. It must be limited.
       built_up_area=list(
         key="building",
         features=c(''),
         type=c("polygons"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=2
       ),
       water_harvesting=list(
         key="man_made",
         features=c('water_tower','storage_tank'),
         type=c("points"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=125
       ),
       educational_institutes=list(
         key="amenity",
         features=c('college','kindergarden','language_school','library','school','university'),
         type=c("polygons"),
-        color=mycolors[]
+        color=mycolors[],
+        conceptId=191
       )
-      
-      
-      
     )
-    
-    
+  }
+  
+  for(i in seq(length(rc2osmKeyFeat))){
+    names(rc2osmKeyFeat)[i]<-TELLmeHub.getConceptCurrentLabel(rc2osmKeyFeat[[i]]$conceptId)
   }
   
   timeout <- reactive({
@@ -203,9 +240,11 @@ shinyServer(function(input, output, session) {
   observe({
     if (RV$layersPresent) {
       enable("downloadShapeFiles")
+      enable("uploadToGetIt")
     }
     else{
       disable("downloadShapeFiles")
+      enable("uploadToGetIt")
     }
   })
   
@@ -521,7 +560,7 @@ shinyServer(function(input, output, session) {
     #plot layer
   })
   
-  # current assetname without any extension (it is composed by the layers names - relatedConcepts - and the bounding box)
+  # current asset(s)name without any extension (it is composed by the layers names - relatedConcepts - and the bounding box)
   assetname <- reactive({
     paste(paste(names(RV$layers), collapse = "-"), "bbx", bbx_concat(), sep = "_")
   })
@@ -571,4 +610,92 @@ shinyServer(function(input, output, session) {
     },
     contentType = "application/zip"
   )
+  
+  # upload to get-it
+  # TODO: we need more info about the final get-it instance and the user currently acting on the app.
+  # TODO: investigate (in shinyProxy) how we can obtain info about the logged-in user (it seems to be not so trivial... unluckily)
+  observeEvent(input$uploadToGetIt, ignoreInit = TRUE, {
+    # TODO: refactor parts of this code in order to have just one replica of saving shapefiles (here and in the previous download handler)
+    # TODO: we need the following params from somewhere in order to perform the get-it ingestion workflow:
+    shinyproxy_userName <- Sys.getenv("SHINYPROXY_USERNAME")
+    ownername<-shinyuser2getituser(shinyproxy_userName)# must be the connected (?) user counterpart in the get-it
+    
+    # to be defined for the entire app (they could be in the global.R, in the project case)
+    # getit_url<-"http://tellmehub.get-it.it"
+    # getit_superuser<-"" # admin user in the get-it: it is needed to invoke the updatelayers rest API
+    # getit_password<-""  # it is the admin password
+    # geoserver_url<-"http://tellmehub.get-it.it/geoserver"
+    # workspacename<-"geonode" # it should be this one for the TELLme project
+    # datastorename<-"vlab" # same as previous
+    # geoserver_user<-"" #geoserver admin user
+    # geoserver_password<-"" #geoserver admin password
+
+    # layername<-"" # current layer name: must be instantiated during the for loop, layer per layer
+    # keyword<-"" # it must be derived from the curlayer concept name
+    
+    
+    # TODO: show progress bar during operation.
+    #progress::
+    tmpdir <-
+      tempdir() # e.g. "/var/folders/74/0djbrhs173376yz5pmdwdlr00000gn/T//RtmpDMosAR" note: it is for the entire session. Subsequent calls to the method do not change the path.
+    
+    # metto i file shape in una sottodir di tempdir, che ha il nome dell'asset
+    # subdir of tmpdir: it contains all the shapefiles.
+    #tmpshapedir = paste(tempdir(), assetname(), sep = "/") # I can use the assetname for the subfolder with temporary shapefiles too.
+    
+    #remove any pre-existing file from the folder
+    #unlink(paste(tmpshapedir, "*", sep = "/"))
+    
+    #zipname<-paste(assetname(),"zip",sep=".")
+    
+    #tmpzipdir could be the same tmpdir. The zip archive will be named with the assetname.
+    # at the end we will have: tmpdir/<asset>/
+    ##                          tmpdir/<asset>.zip
+    
+    #setwd(tmpdir)
+    for (curlayer_name in names(RV$layers)) {
+      curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_bbx_") # the filename without extension
+      
+      tmpshapedir<-paste(tempdir(),curlayer_file_name,sep="/") # this is the directory for a single shapefile
+      unlink(paste(tmpshapedir, "*", sep = "/"))
+      
+      curlayer <- RV$layers[[curlayer_name]]
+      rgdal::writeOGR(
+        obj = curlayer,
+        dsn = tmpshapedir,
+        layer = curlayer_file_name,
+        driver = "ESRI Shapefile"
+      )
+      if(upload2getit){
+        zipname=paste0(curlayer_file_name,"zip",sep=".")
+        fileslist <- list.files(path = tmpshapedir, full.names = TRUE)
+        zipfullpath=paste(tmpdir,zipname,sep="/")
+        zip(zipfile = zipfullpath,
+            files = fileslist,
+            flags = "-j")
+        # perform curl related actions
+        # TODO: for the moment just add some textual output with curl statements to follow the code
+        
+        # TODO: uncomment the following function calls once checks of the previuos todo have been completed and the needed parameters (username, admin account, etc.) have been cabled into the app\
+        keyword<-curlayer_name
+        layername<-curlayer_file_name
+        stylename<-"" # need protocol number, scale, and also concept number, that should be mapped in the dictionary of relatedconcepts
+        
+        getit_geoserver_upload_layer(geoserver_url = geoserver_url, 
+                                     geoserver_user = geoserver_user, 
+                                     geoserver_password = geoserver_password,
+                                     workspacename=workspacename,
+                                     datastorename = datastorename,
+                                     layername = layername,
+                                     keyword = keyword
+                                    )
+        #geoserver_layer_set_default_style()
+        #getit_updatelayers()
+        # TODO: make some output visible at least in log
+      }
+    }
+    #TODO: close progress bar and complete logging
+    
+  })
+  
 })
