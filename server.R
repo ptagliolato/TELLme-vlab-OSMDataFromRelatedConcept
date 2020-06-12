@@ -7,6 +7,7 @@
 # Author: Paolo Tagliolato (CNR IREA), Alessandro Oggioni (CNR IREA), Iacopo Neri (Polimi)
 #
 
+# TODO: problema attributi mancanti in shp risultante da amenity:recycling. Serve avere i tag "paper:yes" etc.
 library(shiny)
 library(osmdata)
 library(sf)
@@ -17,13 +18,20 @@ library(leaflet.extras)
 library(geosapi) #libreria per accesso a geoserver API
 #library(mapview)
 
-
 shinyServer(function(input, output, session) {
   # settings (colors, relatedConcepts->OSMfeature presets)
   {
     mycolors <- RColorBrewer::brewer.pal(9, name = "Set1")
     myblues <- RColorBrewer::brewer.pal(9, name = "Blues")
     mygrays <- RColorBrewer::brewer.pal(11, "RdGy")
+    
+    # TELLme palette
+    color.canals.line="#90a4bf"
+    color.streams.line="#cdd2d7"
+    color.rivers.line="#23446b"
+    color.buildArea.area="#9a0923"
+    color.roads.line="#59080a"
+    
     
     set_overpass_url("https://overpass-api.de/api/interpreter")
     
@@ -41,7 +49,8 @@ shinyServer(function(input, output, session) {
                   market_global=10,
                   built_up_area=11,
                   water_harvesting=12,
-                  educational_institutes=13
+                  educational_institutes=13,
+                  subway=185
                   )
     
     
@@ -68,7 +77,7 @@ shinyServer(function(input, output, session) {
           'residential'
         ),
         type = c("lines"),
-        color = mygrays[8],
+        color = color.roads.line,
         conceptId = 1
       ),
       # TODO: mancano ancora: 
@@ -78,23 +87,23 @@ shinyServer(function(input, output, session) {
       # body_of_water_springs, 
       body_of_water_rivers = list(
         key = "waterway",
-        features = 'rivers',
+        features = 'river',
         type = c("lines"),
-        color = myblues[9],
+        color = color.rivers.line,
         conceptId=11
       ),
       body_of_water_streams = list(
         key = "waterway",
         features = 'stream',
         type = c("lines"),
-        color = myblues[7],
+        color = color.streams.line,
         conceptId=12
       ),
       body_of_water_canals = list(
         key = "waterway",
         features = 'canal',
         type = c("lines"),
-        color = myblues[5],
+        color = color.canals.line,
         conceptId=119
       ),
       railways = list(
@@ -104,17 +113,25 @@ shinyServer(function(input, output, session) {
         color = mygrays[10],
         conceptId=24
       ),
+      subway = list(
+        key="railway",
+        features=c("subway"),
+        type=c("lines"),
+        color="#b41d0f",
+        conceptId=185
+      ),
       land_use = list(
         key = "landuse",
         features = c('commercial',
                      'industrial',
                      'park',
-                     'forest'),
+                     'forest',
+                     'farm'),
         type = c("polygons"),
         color = mycolors[7],
         conceptId=26
       ),
-      recycling_points=list(
+      recycling_points=list( #TODO: serve che restituisca cosa ricicla. es. recycling:paper
         key="amenity",
         features=c('recycling'),
         type=c("points"),
@@ -154,7 +171,7 @@ shinyServer(function(input, output, session) {
         key="building",
         features=c(''),
         type=c("polygons"),
-        color=mycolors[],
+        color=color.buildArea.area,
         conceptId=2
       ),
       water_harvesting=list(
@@ -552,7 +569,8 @@ shinyServer(function(input, output, session) {
       }
       if (!is.na(match("polygons", type))) {
         proxy %>% leaflet::addPolygons(data = osmdata,
-                                       color = color,
+                                       fillColor = color,
+                                       color=color,
                                        group = rc)
       }
       proxy %>% addLayersControl(overlayGroups = names(RV$layers))
