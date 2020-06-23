@@ -134,6 +134,7 @@ shinyServer(function(input, output, session) {
       recycling_points=list( #TODO: serve che restituisca cosa ricicla. es. recycling:paper
         key="amenity",
         features=c('recycling'),
+        renameTagsForFeature=c('recycling'),
         type=c("points"),
         color=mycolors[7],
         conceptId=111
@@ -348,6 +349,7 @@ shinyServer(function(input, output, session) {
     })
   }
   
+  #####----- download data -----
   # compose the overpass query and
   # download the data from overpass API
   observeEvent(input$downloadOverpass, ignoreInit = TRUE, {
@@ -392,17 +394,13 @@ shinyServer(function(input, output, session) {
           
           # ...ok , let's retrieve data
           if (!is.na(features)) {
-            
             q <- osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
               add_osm_feature(key = key, value = features)
-            
           }
           else{
-            
             q <-
               osmdata::opq(bbox = as.numeric(bbx()), timeout = timeout()) %>%
               add_osm_feature(key = key) 
-            
           }
           
           string_osm_query<-osmdata::opq_string(q)
@@ -420,7 +418,17 @@ shinyServer(function(input, output, session) {
           # x_xml<-q %>% osmadata_xml(filename=tempfile())
           # RV$xml[selectedConcept]<-x_xml
           
-          x <- q %>% osmdata_sp()
+          ##> use sf instead of sp
+          #x <- q %>% osmdata_sp()
+          x<-q %>% osmdata::osmdata_sf()
+          
+          # workaround to solve leaflet issue. See https://github.com/r-spatial/sf/issues/880
+          names(x$osm_points$geometry)<-NULL
+          names(x$osm_lines$geometry)<-NULL
+          names(x$osm_multilines$geometry)<-NULL
+          names(x$osm_polygons$geometry)<-NULL
+          names(x$osm_multipolygons$geometry)<-NULL
+          
           
           #   },
           #   warning=function(w){
@@ -441,23 +449,27 @@ shinyServer(function(input, output, session) {
           #   }
           # )
           
-          # string for CRS settings
-          epsg=4326
-          #epsg=3857
-          CRS=paste("+init=epsg:",epsg,sep="")
+          ##> CRS in sf is already ok
+          # # string for CRS settings
+          # epsg=4326
+          # #epsg=3857
+          # CRS=paste("+init=epsg:",epsg,sep="")
           
           ####
           if (!is.na(match("points", type)) &&
               !is.null(x$osm_points) && length(x$osm_points) > 0) {
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             
-            progress$inc(
-              increment,
-              detail = paste(selectedConcept,": reprojecting data" )
-            )
+            ##> CRS in sf is already ok
+            # progress$inc(
+            #   increment,
+            #   detail = paste(selectedConcept,": reprojecting data" )
+            # )
+            # points <- spTransform(x$osm_points, CRSobj = CRS)
+           # points<-x$osm_points
             
-            points <- spTransform(x$osm_points, CRSobj = CRS)
-            RV$layers[selectedConcept] <- points
+            ##> TODO: check RV$layers usage after switching to SF
+            RV$layers[[selectedConcept]] <- x$osm_points #points 
           }
           
           
@@ -467,23 +479,29 @@ shinyServer(function(input, output, session) {
               !is.null(x$osm_lines) && length(x$osm_lines) > 0) {
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             
-            progress$inc(
-              increment,
-              detail = paste(selectedConcept,": reprojecting data" )
-            )
-            
-            lines <- spTransform(x$osm_lines, CRSobj = CRS)
-            RV$layers[selectedConcept] <- lines
+            ##> CRS in sf is already ok
+            # progress$inc(
+            #   increment,
+            #   detail = paste(selectedConcept,": reprojecting data" )
+            # )
+            # 
+            # lines <- spTransform(x$osm_lines, CRSobj = CRS)
+            #lines <- x$osm_lines
+            RV$layers[[selectedConcept]] <- x$osm_lines #lines
           }
           
           if (!is.na(match("polygons", type)) &&
               !is.null(x$osm_polygons) && length(x$osm_polygons) > 0) {
-            # in order to correctly plot the layer in the leaflet component, we must reproject the data.
-            polygons <-
-              spTransform(x$osm_polygons, CRSobj = CRS)
-            RV$layers[selectedConcept] <- polygons
+            
+            ##> CRS in sf is already ok
+            # # in order to correctly plot the layer in the leaflet component, we must reproject the data.
+            # polygons <-
+            #   spTransform(x$osm_polygons, CRSobj = CRS)
+            #polygons <- x$osm_polygons
+            RV$layers[[selectedConcept]] <- x$osm_polygons #polygons
           }
           errorRaised<-FALSE
+          rm(x)
           ##
         },
         # warning=function(w){
@@ -513,6 +531,7 @@ shinyServer(function(input, output, session) {
           #logstring<-c(logstring,paste(output,sep=";",collapse="\n"))
           logger$logger<-c(logger$logger,output)
           #updateTextAreaInput(session, inputId = "errorlog" , "", value = logstring)
+          
         }
       )
       ##
@@ -520,16 +539,14 @@ shinyServer(function(input, output, session) {
     RV$layersPresent <- TRUE
   })
   
-  #
-  # log
-  #
+  ####---- LOG ----
   logger<-reactiveValues(logger=c())
   observe({
     logstring<-paste(logger$logger,sep="; ", collapse="\n------\n")
     updateTextAreaInput(session, inputId = "errorlog" , "log", value = logstring)
   })
 
-  # plot downloaded data.
+  ####---- plot downloaded data ----
   observe({
     #lookup layer type
     progress <- shiny::Progress$new()
@@ -539,6 +556,13 @@ shinyServer(function(input, output, session) {
     
     for (rc in names(RV$layers)) {
       osmdata <- RV$layers[[rc]]
+      #warning(paste0("DEBUG: class RV$layers[[]] is: ",class(RV$layers[[rc]])))
+      #warning(paste0("DEBUG: class RV$layers[] is: ",class(RV$layers[rc])))
+      
+              
+      
+      #names(st_geometry(osmdata))=NULL
+      
       
       key <- rc2osmKeyFeat[[rc]]$key
       features <- rc2osmKeyFeat[[rc]]$features
@@ -609,12 +633,26 @@ shinyServer(function(input, output, session) {
       for (curlayer_name in names(RV$layers)) {
         curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_bbx_")
         curlayer <- RV$layers[[curlayer_name]]
-        rgdal::writeOGR(
-          obj = curlayer,
-          dsn = tmpshapedir,
-          layer = curlayer_file_name,
-          driver = "ESRI Shapefile"
-        )
+        
+        # ##> debug shortening attribute names when writing shapefile
+        # # change column names to control trimming names with the following convention on OSM Tags:
+        # # e.g. if osm "feature" is "onefeaturexxx" then for each tag ("onetag") we have a boolean column named "onefeaturexxx.onetag"
+        # # we want to write in the shapefile something like "t_onetag" in order to preserve the tag name as much as possible
+        # nomi_feature<-rc2osmKeyFeat[[curlayer_name]]$features #lista?
+        # posizioni_con_tag<-names(curlayer) %>%  grep(pattern=paste0(curlayer$features,".") )
+        # names(curlayer)[posizioni_con_tag]<-gsub(names(curlayer)[posizioni_con_tag],pattern=recycling_points$features, replacement = "t")
+        # ## QUI
+        
+        
+        # ##> use sf instead of sp, so substitute rgdal::writeOGR with sf::st_write 
+        # rgdal::writeOGR(
+        #   obj = curlayer,
+        #   dsn = tmpshapedir,
+        #   layer = curlayer_file_name,
+        #   driver = "ESRI Shapefile"
+        # 
+        sf::st_write(obj = curlayer, dsn=paste0(tmpshapedir,"/",curlayer_file_name), driver = "ESRI Shapefile") 
+        
       }
       
       fileslist <- list.files(path = tmpshapedir, full.names = TRUE)
