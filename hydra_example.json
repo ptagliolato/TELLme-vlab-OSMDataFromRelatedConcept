@@ -1,1 +1,158 @@
-[{"@id":"_:b0","@type":["http://www.w3.org/ns/hydra/core#IriTemplate"],"http://www.w3.org/ns/hydra/core#template":[{"@value":"https://www.orfeus-eu.org/fdsnws/station/1/query{?starttime, endtime, network, station, location, channel,  minlatitude, maxlatitude, minlongitude, maxlongitude, level}"}],"http://www.w3.org/ns/hydra/core#mapping":[{"@id":"_:b1"},{"@id":"_:b2"},{"@id":"_:b3"},{"@id":"_:b4"},{"@id":"_:b5"},{"@id":"_:b6"},{"@id":"_:b7"},{"@id":"_:b8"},{"@id":"_:b9"},{"@id":"_:b10"},{"@id":"_:b11"}]},{"@id":"_:b1","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"starttime"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"schema:startDate"}],"http://schema.org/valuePattern":[{"@value":"YYYY-MM-DDThh:mm:ss"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Start of the timespan"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":true}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:dateTime"}]},{"@id":"_:b10","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"maxlongitude"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"epos:easternmostLongitude"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:float"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Maximum Longitude"}],"http://schema.org/minValue":[{"@value":"-180.0"}],"http://schema.org/maxValue":[{"@value":"180.0"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}]},{"@id":"_:b11","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"level"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Level of instrument detail"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:string"}],"http://www.w3.org/2006/http#paramValue":[{"@value":"network"},{"@value":"station"},{"@value":"channel"},{"@value":"response"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}]},{"@id":"_:b2","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"endtime"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"schema:endDate"}],"http://schema.org/valuePattern":[{"@value":"YYYY-MM-DDThh:mm:ss"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"End of the timespan"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":true}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:dateTime"}]},{"@id":"_:b3","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"network"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Network code"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":true}],"http://schema.org/defaultValue":[{"@value":"NL"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:string"}]},{"@id":"_:b4","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"station"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Station code"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":true}],"http://schema.org/defaultValue":[{"@value":"HGN"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:string"}]},{"@id":"_:b5","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"location"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Location code"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:string"}]},{"@id":"_:b6","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"channel"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Channel code"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:string"}]},{"@id":"_:b7","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"minlatitude"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"epos:southernmostLatitude"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:float"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Minimum Latitude"}],"http://schema.org/minValue":[{"@value":"-90.0"}],"http://schema.org/maxValue":[{"@value":"90.0"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}]},{"@id":"_:b8","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"maxlatitude"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"epos:northernmostLatitude"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:float"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Maximum Latitude"}],"http://schema.org/minValue":[{"@value":"-90.0"}],"http://schema.org/maxValue":[{"@value":"90.0"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}]},{"@id":"_:b9","@type":["http://www.w3.org/ns/hydra/core#IriTemplateMapping"],"http://www.w3.org/ns/hydra/core#variable":[{"@value":"minlongitude"}],"http://www.w3.org/ns/hydra/core#property":[{"@value":"epos:westernmostLongitude"}],"http://www.w3.org/2000/01/rdf-schema#range":[{"@value":"xsd:float"}],"http://www.w3.org/2000/01/rdf-schema#label":[{"@value":"Minimum Longitude"}],"http://schema.org/minValue":[{"@value":"-180.0"}],"http://schema.org/maxValue":[{"@value":"180.0"}],"http://www.w3.org/ns/hydra/core#required":[{"@value":false}]},{"@id":"http://www.w3.org/ns/hydra/core#IriTemplate"},{"@id":"http://www.w3.org/ns/hydra/core#IriTemplateMapping"},{"@id":"http://www.w3.org/ns/hydra/core#Operation"},{"@id":"https://www.epos-eu.org/epos-dcat-ap/Seismology/WebService/002/Operation/002/ODC","@type":["http://www.w3.org/ns/hydra/core#Operation"],"http://www.w3.org/ns/hydra/core#method":[{"@value":"GET"}],"http://www.w3.org/ns/hydra/core#returns":[{"@value":"application/xml"}],"http://www.w3.org/ns/hydra/core#property":[{"@id":"_:b0"}]}]
+{
+  "@graph" : [ {
+    "@id" : "_:b0",
+    "@type" : "hydra:IriTemplateMapping",
+    "label" : "Channel code",
+    "range" : "xsd:string",
+    "hydra:required" : false,
+    "hydra:variable" : "channel"
+  }, {
+    "@id" : "_:b1",
+    "@type" : "hydra:IriTemplateMapping",
+    "maxValue" : "90.0",
+    "minValue" : "-90.0",
+    "label" : "Maximum Latitude",
+    "range" : "xsd:float",
+    "property" : "epos:northernmostLatitude",
+    "hydra:required" : false,
+    "hydra:variable" : "maxlatitude"
+  }, {
+    "@id" : "_:b10",
+    "@type" : "hydra:IriTemplateMapping",
+    "valuePattern" : "YYYY-MM-DDThh:mm:ss",
+    "label" : "End of the timespan",
+    "range" : "xsd:dateTime",
+    "property" : "schema:endDate",
+    "hydra:required" : true,
+    "hydra:variable" : "endtime"
+  }, {
+    "@id" : "_:b11",
+    "@type" : "hydra:IriTemplateMapping",
+    "maxValue" : "180.0",
+    "minValue" : "-180.0",
+    "label" : "Minimum Longitude",
+    "range" : "xsd:float",
+    "property" : "epos:westernmostLongitude",
+    "hydra:required" : false,
+    "hydra:variable" : "minlongitude"
+  }, {
+    "@id" : "_:b2",
+    "@type" : "hydra:IriTemplate",
+    "mapping" : [ "_:b7", "_:b8", "_:b4", "_:b6", "_:b5", "_:b9", "_:b0", "_:b10", "_:b3", "_:b11", "_:b1" ],
+    "hydra:template" : "https://www.orfeus-eu.org/fdsnws/station/1/query{?starttime, endtime, network, station, location, channel,  minlatitude, maxlatitude, minlongitude, maxlongitude, level}"
+  }, {
+    "@id" : "_:b3",
+    "@type" : "hydra:IriTemplateMapping",
+    "maxValue" : "180.0",
+    "minValue" : "-180.0",
+    "label" : "Maximum Longitude",
+    "range" : "xsd:float",
+    "property" : "epos:easternmostLongitude",
+    "hydra:required" : false,
+    "hydra:variable" : "maxlongitude"
+  }, {
+    "@id" : "_:b4",
+    "@type" : "hydra:IriTemplateMapping",
+    "maxValue" : "90.0",
+    "minValue" : "-90.0",
+    "label" : "Minimum Latitude",
+    "range" : "xsd:float",
+    "property" : "epos:southernmostLatitude",
+    "hydra:required" : false,
+    "hydra:variable" : "minlatitude"
+  }, {
+    "@id" : "_:b5",
+    "@type" : "hydra:IriTemplateMapping",
+    "defaultValue" : "HGN",
+    "label" : "Station code",
+    "range" : "xsd:string",
+    "hydra:required" : true,
+    "hydra:variable" : "station"
+  }, {
+    "@id" : "_:b6",
+    "@type" : "hydra:IriTemplateMapping",
+    "label" : "Level of instrument detail",
+    "range" : "xsd:string",
+    "paramValue" : [ "response", "channel", "station", "network" ],
+    "hydra:required" : false,
+    "hydra:variable" : "level"
+  }, {
+    "@id" : "_:b7",
+    "@type" : "hydra:IriTemplateMapping",
+    "defaultValue" : "NL",
+    "label" : "Network code",
+    "range" : "xsd:string",
+    "hydra:required" : true,
+    "hydra:variable" : "network"
+  }, {
+    "@id" : "_:b8",
+    "@type" : "hydra:IriTemplateMapping",
+    "label" : "Location code",
+    "range" : "xsd:string",
+    "hydra:required" : false,
+    "hydra:variable" : "location"
+  }, {
+    "@id" : "_:b9",
+    "@type" : "hydra:IriTemplateMapping",
+    "valuePattern" : "YYYY-MM-DDThh:mm:ss",
+    "label" : "Start of the timespan",
+    "range" : "xsd:dateTime",
+    "property" : "schema:startDate",
+    "hydra:required" : true,
+    "hydra:variable" : "starttime"
+  }, {
+    "@id" : "https://www.epos-eu.org/epos-dcat-ap/Seismology/WebService/002/Operation/002/ODC",
+    "@type" : "hydra:Operation",
+    "method" : "GET",
+    "property" : {
+      "@id" : "_:b2"
+    },
+    "returns" : "application/xml"
+  } ],
+  "@id" : "urn:x-arq:DefaultGraphNode",
+  "@context" : {
+    "range" : "http://www.w3.org/2000/01/rdf-schema#range",
+    "required" : {
+      "@id" : "http://www.w3.org/ns/hydra/core#required",
+      "@type" : "http://www.w3.org/2001/XMLSchema#boolean"
+    },
+    "label" : "http://www.w3.org/2000/01/rdf-schema#label",
+    "variable" : {
+      "@id" : "http://www.w3.org/ns/hydra/core#variable",
+      "@type" : "http://www.w3.org/2001/XMLSchema#string"
+    },
+    "maxValue" : "http://schema.org/maxValue",
+    "minValue" : "http://schema.org/minValue",
+    "property" : "http://www.w3.org/ns/hydra/core#property",
+    "returns" : "http://www.w3.org/ns/hydra/core#returns",
+    "method" : "http://www.w3.org/ns/hydra/core#method",
+    "defaultValue" : "http://schema.org/defaultValue",
+    "paramValue" : "http://www.w3.org/2006/http#paramValue",
+    "mapping" : {
+      "@id" : "http://www.w3.org/ns/hydra/core#mapping",
+      "@type" : "@id"
+    },
+    "template" : {
+      "@id" : "http://www.w3.org/ns/hydra/core#template",
+      "@type" : "http://www.w3.org/2001/XMLSchema#string"
+    },
+    "valuePattern" : "http://schema.org/valuePattern",
+    "epos" : "https://www.epos-eu.org/epos-dcat-ap#",
+    "schema" : "http://schema.org/",
+    "adms" : "http://www.w3.org/ns/adms#",
+    "owl" : "http://www.w3.org/2002/07/owl#",
+    "gsp" : "http://www.opengis.net/ont/geosparql#",
+    "xsd" : "http://www.w3.org/2001/XMLSchema#",
+    "cnt" : "http://www.w3.org/2011/content#",
+    "skos" : "http://www.w3.org/2004/02/skos/core#",
+    "rdfs" : "http://www.w3.org/2000/01/rdf-schema#",
+    "vcard" : "http://www.w3.org/2006/vcard/ns#",
+    "hydra" : "http://www.w3.org/ns/hydra/core#",
+    "dct" : "http://purl.org/dc/terms/",
+    "rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "http" : "http://www.w3.org/2006/http#",
+    "dcat" : "http://www.w3.org/ns/dcat#",
+    "locn" : "http://www.w3.org/ns/locn#",
+    "dc" : "http://purl.org/dc/elements/1.1/"
+  }
+}
