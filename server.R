@@ -619,9 +619,11 @@ shinyServer(function(input, output, session) {
       # metto i file shape in una sottodir di tempdir, che ha il nome dell'asset
       # subdir of tmpdir: it contains all the shapefiles.
       tmpshapedir = paste(tempdir(), assetname(), sep = "/") # I can use the assetname for the subfolder with temporary shapefiles too.
+      message("-- tmpdir: ", tmpdir)
       
       #remove any pre-existing file from the folder
-      unlink(paste(tmpshapedir, "*", sep = "/"))
+      unlink(paste(tmpdir, "*", sep = "/"),recursive=TRUE)
+      message("-- removing old files from tmpdir: ", paste(tmpdir, "*", sep = "/"))
       
       #zipname<-paste(assetname(),"zip",sep=".")
       
@@ -651,11 +653,16 @@ shinyServer(function(input, output, session) {
         #   layer = curlayer_file_name,
         #   driver = "ESRI Shapefile"
         # 
-        sf::st_write(obj = curlayer, dsn=paste0(tmpshapedir,"/",curlayer_file_name), driver = "ESRI Shapefile") 
+        dsn_tmpshapedir = paste(tmpdir, curlayer_file_name, sep = "/") 
+        message("-- trying to write single shapefile to folder", dsn_tmpshapedir)
+        sf::st_write(obj = curlayer, dsn=dsn_tmpshapedir,layer=curlayer_file_name, driver = "ESRI Shapefile") 
+        #sf::st_write(obj = curlayer, dsn=tmpshapedir,layer=curlayer_file_name, driver = "ESRI Shapefile") 
         
+        message("-- written single shapefile to folder")
       }
       
-      fileslist <- list.files(path = tmpshapedir, full.names = TRUE)
+      fileslist <- list.files(path = tmpdir, full.names = TRUE, recursive = TRUE)
+      message(fileslist)
       
       # TODO: check how many zip files. For the upload to geoserver/get-it there must be as many zip as the layers
       zip(zipfile = file #paste(tmpdir,zipname,sep="/")
