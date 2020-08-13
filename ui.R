@@ -82,8 +82,10 @@ dashboardPagePlus(
       panels.troubleshooting_text
     ),
     rightSidebarTabContent(id="controls",icon="gear",title = "Settings",
-                           numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
-                           div(style="font-size:smaller;",textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical", height = 300))
+                           shiny::textInput(inputId = "user", label = "your tellme-hub userid", value = "admin"),
+                           shiny::passwordInput(inputId = "password", label="your tellme-hub password", value = ""),
+                           shiny::numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
+                           div(style="font-size:smaller;",shiny::textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical", height = 300))
     )
   ),
   sidebar = 

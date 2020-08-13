@@ -17,6 +17,7 @@ library(leaflet)
 library(leaflet.extras)
 library(geosapi) #libreria per accesso a geoserver API
 #library(mapview)
+library(digest) # xxhash64 is used to hash bbx in layer names in order to limit their nchar<64 (ncher(layernames)>=64 is invalid in postgis and causes errors)
 
 shinyServer(function(input, output, session) {
   # settings (colors, relatedConcepts->OSMfeature presets)
@@ -254,15 +255,18 @@ shinyServer(function(input, output, session) {
     updateTextAreaInput(session, inputId = "overpass_query" , value = output)
   })
     
+  # TODO: investigate (in shinyProxy) how we can obtain info about the logged-in user (it seems to be not so trivial... unluckily) - 
+  # then move to input$user this info 
   # download button is enabled according to RV$layersPresent boolean value
   observe({
     if (RV$layersPresent) {
       enable("downloadShapeFiles")
-      enable("uploadToGetIt")
+      if(input$user!="" && input$password!="")
+        enable("uploadToGetIt")
     }
     else{
       disable("downloadShapeFiles")
-      enable("uploadToGetIt")
+      disable("uploadToGetIt")
     }
   })
   
@@ -285,7 +289,7 @@ shinyServer(function(input, output, session) {
     
     # concatenation of bbx with "_" separator
     bbx_concat <- reactive({
-      paste(bbx(), sep = "_", collapse = "_")
+      digest(paste(bbx(), sep = "_", collapse = "_"), algo="xxhash64")
     })
     
     # print bounding box bbx (reactive) in label
@@ -371,7 +375,7 @@ shinyServer(function(input, output, session) {
     
     errorRaised<-FALSE
     logstring<-c()
-    logger$logger<-c(osmdata::overpass_status(),paste("OSM data download for bounding box: ",bbx()))
+    logger$logger<-c(osmdata::overpass_status(),paste("OSM data download for bounding box: ",paste(bbx(), collapse=",")))
     increment<-1/(length(selectedConcepts)*3) # 2 steps for each concept: download and reproject
     for (selectedConcept in selectedConcepts) {
       errorRaised<-TRUE
@@ -604,7 +608,7 @@ shinyServer(function(input, output, session) {
   
   # current asset(s)name without any extension (it is composed by the layers names - relatedConcepts - and the bounding box)
   assetname <- reactive({
-    paste(paste(names(RV$layers), collapse = "-"), "bbx", bbx_concat(), sep = "_")
+    paste(paste(names(RV$layers), collapse = "-"), bbx_concat(), sep = "_")
   })
   
   # download shape files
@@ -618,7 +622,7 @@ shinyServer(function(input, output, session) {
       
       # metto i file shape in una sottodir di tempdir, che ha il nome dell'asset
       # subdir of tmpdir: it contains all the shapefiles.
-      tmpshapedir = paste(tempdir(), assetname(), sep = "/") # I can use the assetname for the subfolder with temporary shapefiles too.
+      #tmpshapedir = paste(tempdir(), assetname(), sep = "/") # I can use the assetname for the subfolder with temporary shapefiles too.
       message("-- tmpdir: ", tmpdir)
       
       #remove any pre-existing file from the folder
@@ -633,7 +637,7 @@ shinyServer(function(input, output, session) {
       
       #setwd(tmpdir)
       for (curlayer_name in names(RV$layers)) {
-        curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_bbx_")
+        curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_")
         curlayer <- RV$layers[[curlayer_name]]
         
         # ##> debug shortening attribute names when writing shapefile
@@ -675,86 +679,104 @@ shinyServer(function(input, output, session) {
   )
   
   # upload to get-it
-  # TODO: we need more info about the final get-it instance and the user currently acting on the app.
-  # TODO: investigate (in shinyProxy) how we can obtain info about the logged-in user (it seems to be not so trivial... unluckily)
+  
   observeEvent(input$uploadToGetIt, ignoreInit = TRUE, {
-    # TODO: refactor parts of this code in order to have just one replica of saving shapefiles (here and in the previous download handler)
+    # TODO: add trycatch block
+    upload2getit=TRUE
     # TODO: we need the following params from somewhere in order to perform the get-it ingestion workflow:
-    shinyproxy_userName <- Sys.getenv("SHINYPROXY_USERNAME")
-    ownername<-shinyuser2getituser(shinyproxy_userName)# must be the connected (?) user counterpart in the get-it
+    #shinyproxy_userName <- Sys.getenv("SHINYPROXY_USERNAME")
+    #ownername<-shinyuser2getituser(shinyproxy_userName)# must be the connected (?) user counterpart in the get-it
     
-    # to be defined for the entire app (they could be in the global.R, in the project case)
-    # getit_url<-"http://tellmehub.get-it.it"
-    # getit_superuser<-"" # admin user in the get-it: it is needed to invoke the updatelayers rest API
-    # getit_password<-""  # it is the admin password
-    # geoserver_url<-"http://tellmehub.get-it.it/geoserver"
-    # workspacename<-"geonode" # it should be this one for the TELLme project
-    # datastorename<-"vlab" # same as previous
-    # geoserver_user<-"" #geoserver admin user
-    # geoserver_password<-"" #geoserver admin password
-
     # layername<-"" # current layer name: must be instantiated during the for loop, layer per layer
     # keyword<-"" # it must be derived from the curlayer concept name
     
     
     # TODO: show progress bar during operation.
+    progress <- shiny::Progress$new()
+    # Make sure it closes when we exit this reactive, even if there's an error
+    on.exit(progress$close())
+    progress$set(message = "Uploading data to TELLme-Hub...", value = 0)
+    #logger$logger<-c(
+    increment<-1/(length(names(RV$layers))) # 1 step for each concept
+    
     #progress::
-    tmpdir <-
+    tmpdir <- 
       tempdir() # e.g. "/var/folders/74/0djbrhs173376yz5pmdwdlr00000gn/T//RtmpDMosAR" note: it is for the entire session. Subsequent calls to the method do not change the path.
     
     # metto i file shape in una sottodir di tempdir, che ha il nome dell'asset
     # subdir of tmpdir: it contains all the shapefiles.
     #tmpshapedir = paste(tempdir(), assetname(), sep = "/") # I can use the assetname for the subfolder with temporary shapefiles too.
     
+    message("-- tmpdir: ", tmpdir)
+    
     #remove any pre-existing file from the folder
-    #unlink(paste(tmpshapedir, "*", sep = "/"))
+    unlink(paste(tmpdir, "*", sep = "/"),recursive=TRUE)
+    message("-- removing old files from tmpdir: ", paste(tmpdir, "*", sep = "/"))
     
-    #zipname<-paste(assetname(),"zip",sep=".")
-    
-    #tmpzipdir could be the same tmpdir. The zip archive will be named with the assetname.
-    # at the end we will have: tmpdir/<asset>/
-    ##                          tmpdir/<asset>.zip
-    
-    #setwd(tmpdir)
     for (curlayer_name in names(RV$layers)) {
-      curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_bbx_") # the filename without extension
       
-      tmpshapedir<-paste(tempdir(),curlayer_file_name,sep="/") # this is the directory for a single shapefile
-      unlink(paste(tmpshapedir, "*", sep = "/"))
-      
+      curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_") # the filename without extension
       curlayer <- RV$layers[[curlayer_name]]
-      rgdal::writeOGR(
-        obj = curlayer,
-        dsn = tmpshapedir,
-        layer = curlayer_file_name,
-        driver = "ESRI Shapefile"
+      curlayer_conceptId<-rc2osmKeyFeat[[curlayer_name]]$conceptId
+      
+      progress$inc(
+        increment,
+        detail = paste("saving", curlayer_name,"..." )
       )
+      
+      message("-- concept id: ",curlayer_conceptId)
+      warning("[dev] try using the RV archived layer directly (do not copy)")
+      
+      dsn_tmpshapedir = paste(tmpdir, curlayer_file_name, sep = "/") 
+      message("-- trying to write single shapefile to folder", dsn_tmpshapedir)
+      
+      sf::st_write(obj = curlayer, dsn=dsn_tmpshapedir,layer=curlayer_file_name, driver = "ESRI Shapefile") 
+      
+      message("-- written single shapefile to folder")
+      
       if(upload2getit){
-        zipname=paste0(curlayer_file_name,"zip",sep=".")
-        fileslist <- list.files(path = tmpshapedir, full.names = TRUE)
-        zipfullpath=paste(tmpdir,zipname,sep="/")
+        zipname=paste0(curlayer_file_name,".zip")
+        fileslist <- list.files(path = dsn_tmpshapedir, full.names = TRUE)
+        zipfullpath=paste(tmpdir, zipname, sep="/")
         zip(zipfile = zipfullpath,
             files = fileslist,
             flags = "-j")
-        # perform curl related actions
-        # TODO: for the moment just add some textual output with curl statements to follow the code
         
         # TODO: uncomment the following function calls once checks of the previuos todo have been completed and the needed parameters (username, admin account, etc.) have been cabled into the app\
         keyword<-curlayer_name
         layername<-curlayer_file_name
         stylename<-"" # need protocol number, scale, and also concept number, that should be mapped in the dictionary of relatedconcepts
         
-        getit_geoserver_upload_layer(geoserver_url = geoserver_url, 
-                                     geoserver_user = geoserver_user, 
-                                     geoserver_password = geoserver_password,
-                                     workspacename=workspacename,
-                                     datastorename = datastorename,
-                                     layername = layername,
-                                     keyword = keyword
-                                    )
+        message("-- zipname_and_path (zipfullpath): ", zipfullpath)
+        result<-getit_uploadLayer(getit_url = getit_url,
+                          getit_user = input$user,
+                          getit_userpassword = input$password,
+                          zipname_and_path = zipfullpath,
+                          layertitle = layername)
+        
+        status<-result$status #must be 200 - else signal - e.g. 400->content(result$response)$errors
+        l_url<-result$getit_layerurl
+        git_lname<-result$getit_layername
+        geo_lname<-result$geoserver_layername
+        
+        msg<-paste("upload", curlayer_file_name, "(",l_url,")","to tellme hub - response status:", status)
+        
+        logger$logger<-c(logger$logger,msg)
+        message(msg)
+        
         #geoserver_layer_set_default_style()
         #getit_updatelayers()
-        # TODO: make some output visible at least in log
+        # TODO: set conceptId via tellmehub API
+        if(status==200){
+          resSetConcept<-tellmehub_layername_set_conceptid(getit_url = getit_url,
+                                          getit_user = input$user,
+                                          getit_password = input$password,
+                                          concept_id = curlayer_conceptId,
+                                          layername = git_lname
+                                          )
+          statusSetConcept<-status_code(resSetConcept)
+          logger$logger<-c(logger$logger,paste("set concept id", git_lname, "to tellme hub - response status:", statusSetConcept))
+        }
       }
     }
     #TODO: close progress bar and complete logging

@@ -133,41 +133,41 @@ geoserver_layer_set_default_style<-function(geoserver_url, geoserver_user="admin
 }
 
 
-# getit_authenticate_handle<-function(getit_url, getit_user, getit_password){
-#   
-#   # bisogna andare sulla pagina di login e recuperare csrfmiddlewaretoken dal modulo che si presenta
-#   # poi bisogna usarlo per effettuare l'autenticazione via una POST con Content-Type: application/x-www-form-urlencoded
-#   # (vedi curl qui sotto)
-#   # poi bisogna usare i cookie di sessione (httr sembrerebbe saperlo fare da solo...)
-#   # cfr altrimenti come fare con rcurl
-#   #   https://stackoverflow.com/questions/15000815/post-request-using-cookies-with-curl-rcurl-and-httr
-#   # 
-#   # curl 'http://tellmehub.get-it.it/account/login/?next=/' 
-#   # --compressed 
-#   # -H 'Content-Type: application/x-www-form-urlencoded' 
-#   # -H 'Origin: http://tellmehub.get-it.it' 
-#   # -H 'Referer: http://tellmehub.get-it.it/' 
-#   # -H 'Cookie: csrftoken=D1xYaa7nClhLCgp7SPEoBQcnXpwQDVlh; _ga=GA1.2.952619385.1568619305' 
-#   # -H 'Upgrade-Insecure-Requests: 1' 
-#   # --data 'csrfmiddlewaretoken=D1xYaa7nClhLCgp7SPEoBQcnXpwQDVlh&username=admin&password=admin'
-#   
-#   urlauth<-paste0(getit_url,"/account/login/")
-#   res<-httr::GET(url=urlauth) # questo dovrebbe servire a settare i cookie necessari alla POST successiva
-#   
-#   # obtain csfrtoken
-#   s<-res$headers$`set-cookie` # e.g. "csrftoken=saknwlpo8G64UKJDR7UGxNbue184D9if; expires=Mon, 08-Feb-2021 15:12:47 GMT; Max-Age=31449600; Path=/"
-#   s_split<-strsplit(s,";")
-#   s_kv<-grep("csrftoken",fixed=TRUE,s_split[[1]],value=TRUE)
-#   csfrtoken<-sub("csrftoken=","",s_kv)
-#   
-#   reslogin<-httr::POST(url=urlauth,
-#                        body=list(csrfmiddlewaretoken=csfrtoken,
-#                                  username=getit_superuser,
-#                                  password=getit_password)
-#   )
-#   
-#   return(reslogin$handle)
-# }
+getit_authenticate_handle<-function(getit_url, getit_user, getit_password){
+
+  # bisogna andare sulla pagina di login e recuperare csrfmiddlewaretoken dal modulo che si presenta
+  # poi bisogna usarlo per effettuare l'autenticazione via una POST con Content-Type: application/x-www-form-urlencoded
+  # (vedi curl qui sotto)
+  # poi bisogna usare i cookie di sessione (httr sembrerebbe saperlo fare da solo...)
+  # cfr altrimenti come fare con rcurl
+  #   https://stackoverflow.com/questions/15000815/post-request-using-cookies-with-curl-rcurl-and-httr
+  #
+  # curl 'http://tellmehub.get-it.it/account/login/?next=/'
+  # --compressed
+  # -H 'Content-Type: application/x-www-form-urlencoded'
+  # -H 'Origin: http://tellmehub.get-it.it'
+  # -H 'Referer: http://tellmehub.get-it.it/'
+  # -H 'Cookie: csrftoken=D1xYaa7nClhLCgp7SPEoBQcnXpwQDVlh; _ga=GA1.2.952619385.1568619305'
+  # -H 'Upgrade-Insecure-Requests: 1'
+  # --data 'csrfmiddlewaretoken=D1xYaa7nClhLCgp7SPEoBQcnXpwQDVlh&username=admin&password=admin'
+
+  urlauth<-paste0(getit_url,"/account/login/")
+  res<-httr::GET(url=urlauth) # questo dovrebbe servire a settare i cookie necessari alla POST successiva
+
+  # obtain csfrtoken
+  s<-res$headers$`set-cookie` # e.g. "csrftoken=saknwlpo8G64UKJDR7UGxNbue184D9if; expires=Mon, 08-Feb-2021 15:12:47 GMT; Max-Age=31449600; Path=/"
+  s_split<-strsplit(s,";")
+  s_kv<-grep("csrftoken",fixed=TRUE,s_split[[1]],value=TRUE)
+  csfrtoken<-sub("csrftoken=","",s_kv)
+
+  reslogin<-httr::POST(url=urlauth,
+                       body=list(csrfmiddlewaretoken=csfrtoken,
+                                 username=getit_user,
+                                 password=getit_password)
+  )
+
+  return(reslogin$handle)
+}
 
 # refresh get-it layers from geoserver
 getit_updatelayers<-function(getit_url, getit_superuser, getit_password, workspacename, datastorename, layername, ownername=NULL){
@@ -274,6 +274,38 @@ getit_uploadLayer<-function(getit_url, getit_user,getit_userpassword, zipname_an
   geoserver_layername<-getit_layername
   # TODO: check return values for names of the layers in geoserver and in get-it: are they correct? are they the same?
   return(list(status=status_code(response),getit_layername=getit_layername, geoserver_layername=geoserver_layername, getit_layerurl=getit_layerurl, response=response))
+}
+
+getit_auth.GET<-function(getit_url,getit_user,getit_password,s_url){
+  #h<-getit_authenticate_handle(getit_url,getit_user,getit_password)
+  {
+    urlauth<-paste0(getit_url,"/account/login/")
+    res<-httr::GET(url=urlauth) # questo dovrebbe servire a settare i cookie necessari alla POST successiva
+    
+    # obtain csfrtoken
+    s<-res$headers$`set-cookie` # e.g. "csrftoken=saknwlpo8G64UKJDR7UGxNbue184D9if; expires=Mon, 08-Feb-2021 15:12:47 GMT; Max-Age=31449600; Path=/"
+    s_split<-strsplit(s,";")
+    s_kv<-grep("csrftoken",fixed=TRUE,s_split[[1]],value=TRUE)
+    csfrtoken<-sub("csrftoken=","",s_kv)
+    
+    reslogin<-httr::POST(url=urlauth,
+                         body=list(csrfmiddlewaretoken=csfrtoken,
+                                   username=getit_user,
+                                   password=getit_password)
+    )
+  }
+  
+  res<-httr::GET(s_url)
+  return(res)
+}
+
+#  set_conceptid via API 
+tellmehub_layername_set_conceptid<-function(getit_url,getit_user,getit_password,layername,concept_id, add=FALSE){
+  s=sprintf(paste0(getit_url,"/tellme/layers/%s/set_conceptid/%d"), layername,concept_id)
+  if(add) s=paste0(s,"?add=TRUE")
+  
+  res<-getit_auth.GET(getit_url,getit_user,getit_password,s)
+  return(res)
 }
 
 # # TODO: add parameters and complete the method. CHECK THIS METHOD AFTER THE PREVIOUS ONE
