@@ -82,8 +82,8 @@ dashboardPagePlus(
       panels.troubleshooting_text
     ),
     rightSidebarTabContent(id="controls",icon="gear",title = "Settings",
-                           shiny::textInput(inputId = "user", label = "your tellme-hub userid", value = "admin"),
-                           shiny::passwordInput(inputId = "password", label="your tellme-hub password", value = ""),
+                           hidden(shiny::textInput(inputId = "user", label = "your tellme-hub userid", value = "")),
+                           hidden(shiny::passwordInput(inputId = "password", label="your tellme-hub password", value = "")),
                            shiny::numericInput(inputId="overpass_timeout",label = "overpass timeout", value = "30",min = 10, max=600, step = 10),
                            div(style="font-size:smaller;",shiny::textAreaInput(inputId="overpass_query", label="overpass generated query", resize="vertical", height = 300))
     )
@@ -145,7 +145,7 @@ dashboardPagePlus(
                 width = 5,
                 style = "text-align:right;",
                 disabled(downloadButton("downloadShapeFiles", "Download results",width=6)),
-                disabled(actionButton("uploadToGetIt", "Upload to TELLme HUB"))
+                hidden(disabled(actionButton("uploadToGetIt", "Upload to TELLme HUB")))
               )
             )
           ),

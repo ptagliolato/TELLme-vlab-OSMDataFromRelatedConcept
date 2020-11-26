@@ -308,6 +308,20 @@ tellmehub_layername_set_conceptid<-function(getit_url,getit_user,getit_password,
   return(res)
 }
 
+tellmehub_api_clean_missing_style_title<-function(getit_url,getit_user,getit_password){
+  s=sprintf(paste0(getit_url,"/tellme/cleanMissingStyleTitle"))
+  res<-getit_auth.GET(getit_url,getit_user,getit_password,s)
+  # res$content
+  return(res)
+}
+
+tellmehub_delete_non_tellme_hierarchicalKeywords<-function(getit_url,getit_user,getit_password){
+  s=sprintf(paste0(getit_url,"/tellme/delete_non_tellme_hierarchicalKeywords"))
+  res<-getit_auth.GET(getit_url,getit_user,getit_password,s)
+  # res$content
+  return(res)
+}
+
 # # TODO: add parameters and complete the method. CHECK THIS METHOD AFTER THE PREVIOUS ONE
 # getit_uploadLayer_and_setKeyword(getit_url, getit_user, getit_userpassword, zipname, layertitle=NULL, keyword, geoserver_password){
 #   getit_uploadLayer(getit_url, getit_user, getit_userpassword, geoserver_layername, layertitle)

@@ -18,6 +18,7 @@ library(leaflet.extras)
 library(geosapi) #libreria per accesso a geoserver API
 #library(mapview)
 library(digest) # xxhash64 is used to hash bbx in layer names in order to limit their nchar<64 (ncher(layernames)>=64 is invalid in postgis and causes errors)
+library(RColorBrewer)
 
 shinyServer(function(input, output, session) {
   # settings (colors, relatedConcepts->OSMfeature presets)
@@ -54,6 +55,11 @@ shinyServer(function(input, output, session) {
                   subway=185
                   )
     
+    if(ENABLE_UPLOAD){
+      show("uploadToGetIt")
+      show("user")
+      show("password")
+    }
     
     
     # list of lists. The named list contains the related concepts.
@@ -689,7 +695,18 @@ shinyServer(function(input, output, session) {
     
     # layername<-"" # current layer name: must be instantiated during the for loop, layer per layer
     # keyword<-"" # it must be derived from the curlayer concept name
-    
+    concept2style<-list(
+      c1=c("c_1-p_1-s_L-overpass","c_1-p_1-s_M-overpass","c_1-p_1-s_XL-overpass"),
+      c11="c_11-p_1-s_XL-overpass",
+      c119="c_119-p_1-s_L-overpass",
+      c12="c_12-p_1-s_L-overpass" ,
+      c125="c_125-p_1-s_L-overpass",
+      c185="c_185-p_1-s_L-overpass",
+      c191="c_191-p_1-s_L-overpass",
+      c2="c_2-p_1-s_XL-overpass" ,
+      c24="c_24-p_1-s_XL-overpass",
+      c26="c_26-p_1-s_L-overpass",
+      c64="c_64-p_1-s_M-overpass" )
     
     # TODO: show progress bar during operation.
     progress <- shiny::Progress$new()
@@ -718,6 +735,7 @@ shinyServer(function(input, output, session) {
       curlayer_file_name <- paste(curlayer_name, bbx_concat(), sep = "_") # the filename without extension
       curlayer <- RV$layers[[curlayer_name]]
       curlayer_conceptId<-rc2osmKeyFeat[[curlayer_name]]$conceptId
+      stylesforCurrentLayer<-concept2style[[paste0("c",curlayer_conceptId)]]
       
       progress$inc(
         increment,
@@ -745,7 +763,9 @@ shinyServer(function(input, output, session) {
         # TODO: uncomment the following function calls once checks of the previuos todo have been completed and the needed parameters (username, admin account, etc.) have been cabled into the app\
         keyword<-curlayer_name
         layername<-curlayer_file_name
-        stylename<-"" # need protocol number, scale, and also concept number, that should be mapped in the dictionary of relatedconcepts
+        
+        stylenames<-c("","","...") # possibly more than one!! need protocol number, scale, and also concept number, that should be mapped in the dictionary of relatedconcepts
+        
         
         message("-- zipname_and_path (zipfullpath): ", zipfullpath)
         result<-getit_uploadLayer(getit_url = getit_url,
@@ -776,6 +796,21 @@ shinyServer(function(input, output, session) {
                                           )
           statusSetConcept<-status_code(resSetConcept)
           logger$logger<-c(logger$logger,paste("set concept id", git_lname, "to tellme hub - response status:", statusSetConcept))
+          
+          browser()
+          conc<-paste0("c",curlayer_conceptId)
+          stylesforCurrentLayer<-concept2style[[paste0("c",curlayer_conceptId)]]
+          # add styles and set default style
+          for(styname in 1:length(stylesforCurrentLayer)){
+            geoserver_layer_add_style(geoserver_url, geoserver_user, geoserver_password, 
+                                      layername = git_lname,
+                                      stylename = styname
+            )
+          }
+          
+          # cleanup
+          tellmehub_delete_non_tellme_hierarchicalKeywords(getit_url = getit_url, getit_user = getit_superuser, getit_password = getit_superuser_password)
+          tellmehub_api_clean_missing_style_title(getit_url = getit_url, getit_user = getit_superuser, getit_password = getit_superuser_password)
         }
       }
     }
