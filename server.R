@@ -56,9 +56,9 @@ shinyServer(function(input, output, session) {
                   )
     
     if(ENABLE_UPLOAD){
-      show("uploadToGetIt")
-      show("user")
-      show("password")
+      shinyjs::show("uploadToGetIt")
+      shinyjs::show("user")
+      shinyjs::show("password")
     }
     
     
@@ -268,11 +268,11 @@ shinyServer(function(input, output, session) {
     if (RV$layersPresent) {
       enable("downloadShapeFiles")
       if(input$user!="" && input$password!="")
-        enable("uploadToGetIt")
+        shinyjs::enable("uploadToGetIt")
     }
     else{
-      disable("downloadShapeFiles")
-      disable("uploadToGetIt")
+      shinyjs::disable("downloadShapeFiles")
+      shinyjs::disable("uploadToGetIt")
     }
   })
   
