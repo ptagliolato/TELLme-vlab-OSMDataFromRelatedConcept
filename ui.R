@@ -40,7 +40,17 @@ panels.about_text<- shiny::helpText(
                         p("3. Click \"Obtain data for related concept\" and evaluate the retrieved geographical features.",
                                        "When you are satisfied with the selection,"),
                         p("4. Click the \"Download results\" button to obtain a zip archive with as many shapefiles as the related concepts." )
-                        ,h4("Credits"), p("Application developed for the TELLme ERASMUS+ project, O4. See"),a("source code repository on github",href="https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept")
+                        ,h4("Credits"), 
+                        p("Application developed for the TELLme ERASMUS+ project, O4. See",
+                          a("source code repository on github",
+                            href="https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept", 
+                            target="_blank")
+                        ),
+                        p("Please cite:", 
+                          a("DOI: 10.5281/zenodo.3741896",
+                            href="https://doi.org/10.5281/zenodo.3741896",
+                            target="_blank")
+                        )
                       )
                     )
               
@@ -56,7 +66,7 @@ panels.troubleshooting_text<-shiny::helpText(p(style="font-size:smaller;",
                                                "and you can use it to directly invoke the remote API, via the",
                                                #"<a href=\"https://overpass-turbo.eu/\">overpass-turbo</a>",
                                                a("overpass-turbo",href="https://overpass-turbo.eu"),
-                                               "web application, or via a terminal using CURL program."))
+                                               "web application, or via a terminal using CURL program.", target="_blank"))
 # choices_osmTags <- NULL
 
 dashboardPagePlus(
