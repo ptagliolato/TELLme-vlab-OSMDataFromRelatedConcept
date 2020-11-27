@@ -22,6 +22,9 @@ LABEL maintainer="ptagliolato <tagliolato.p@irea.cnr.it>" \
 ##### USAGE:
 # build the image:
 #   docker build -t tellme-vlab-osmdatafromrelatedconcept:<version> .
+# Prepare your env file: 
+#  - edit the provided env.example file filling the variable values 
+#  - save the file with the name "env"
 # run the container:
 #   docker run -it --rm --env-file=env -p 3838:3838 tellme-vlab-osmdatafromrelatedconcept:<version>
 # open your browser (if you are running the container in your machine) at the url:
