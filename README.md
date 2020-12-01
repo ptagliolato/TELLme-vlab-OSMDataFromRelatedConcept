@@ -16,7 +16,7 @@ The tool facilitates the operations for obtaining TELLme-framework-related data 
 3. Download all the OSM features related to the Concept in form of zipped shapefiles.
 
 ### Usage with DOCKER
-* Build your own docker image
+Build your own docker image
 
     sudo docker build -t tellme-vlab-osmdatafromrelatedconcept .
 
@@ -24,9 +24,9 @@ or pull a ready-to-use image from docker hub registry
 
     sudo docker pull ptagliolato/tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
-* Prepare your env file: copy the env.example file in this folder, replace the variable values and save it with the name you prefer (e.g. "env")
+Prepare your env file: copy the env.example file in this folder, replace the variable values and save it with the name you prefer (e.g. "env")
 
-* Run a new container (exposing the app e.g. on port 8080, or choose a different one)
+Run a new container (exposing the app e.g. on port 8080, or choose a different one)
 
     sudo docker run --env-file=env -p 8080:3838 [ptagliolato/]tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
