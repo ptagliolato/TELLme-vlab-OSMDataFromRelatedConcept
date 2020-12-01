@@ -31,7 +31,7 @@ Run a new container (exposing the app e.g. on port 8080, or choose a different o
     sudo docker run --env-file=env -p 8080:3838 [ptagliolato/]tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
 ### Guidelines for metadata lineage field of downloaded files
-Open Street Map data relative to TELLme Project Glossary Keywords and Concepts, obtained via Overpass Turbo API through TELLme Project Virtual Lab tool 
+OpenStreetMap data relative to TELLme Project Glossary Keywords and Related Concepts, obtained via [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) through TELLme Project Virtual Lab tool 
 (DOI: 10.5281/zenodo.3741896)
 
 ## Meta
@@ -48,4 +48,6 @@ The software is developed within the TELLme ERASMUS+ project Gran Agreement Numb
 
 ### Acknowledgments
 The authors wish to acknowledge Iacopo Neri and Valentina Galiulo ([PoliMi](https://www.polimi.it/)) for their insights and contribution.
+Open Street Map
+Data downloaded by this app are from [© OpenStreetMap contributors](https://www.openstreetmap.org/copyright) and are available under the [ODbL license](www.openstreetmap.org/copyright or www.opendatacommons.org/licenses/odbl). This product is not endorsed by or affiliated with the OpenStreetMap Foundation. 
 
