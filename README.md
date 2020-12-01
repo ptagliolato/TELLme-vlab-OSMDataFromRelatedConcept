@@ -35,7 +35,7 @@ OpenStreetMap data relative to TELLme Project Glossary Keywords and Related Conc
 (DOI: 10.5281/zenodo.3741896)
 
 ## Meta
-* Please [provide any issue at](https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept/issues), or email tagliolato.p(at)irea.cnr.it
+* Please [provide any issue](https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept/issues), or email tagliolato.p(at)irea.cnr.it
 
 ## Credits
 The software is developed within the TELLme ERASMUS+ project Gran Agreement Number:2017-1-IT02-KA203-036974, output O4.
