@@ -11,21 +11,24 @@ Concepts expressed in the TELLme Glossary are associated to specific OSM Feature
 The tool facilitates the operations for obtaining TELLme-framework-related data used to compose maps in the project. 
 
 ## Usage
-Select a Concept from the dropdown list. 
-Select the bounding box of the zone of interest. 
-Download all the OSM features related to the Concept in form of zipped shapefiles.
+1. Select a Concept from the dropdown list. 
+2. Select the bounding box of the zone of interest. 
+3. Download all the OSM features related to the Concept in form of zipped shapefiles.
 
 ### Usage with DOCKER
-Build your own docker image
-sudo docker build -t tellme-vlab-osmdatafromrelatedconcept .
+* Build your own docker image
+
+    sudo docker build -t tellme-vlab-osmdatafromrelatedconcept .
 
 or pull a ready-to-use image from docker hub registry
-sudo docker pull ptagliolato/tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
-Prepare your env file: copy the env.example file in this folder, replace the variable values and save it with the name you prefer (e.g. "env")
+    sudo docker pull ptagliolato/tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
-Run a new container on port 80
-sudo docker run --env-file=env -p 80:3838 [ptagliolato/]tellme-vlab-osmdatafromrelatedconcept[:<version>]
+* Prepare your env file: copy the env.example file in this folder, replace the variable values and save it with the name you prefer (e.g. "env")
+
+* Run a new container (exposing the app e.g. on port 8080, or choose a different one)
+
+    sudo docker run --env-file=env -p 8080:3838 [ptagliolato/]tellme-vlab-osmdatafromrelatedconcept[:<version>]
 
 ### Guidelines for metadata lineage field of downloaded files
 Open Street Map data relative to TELLme Project Glossary Keywords and Concepts, obtained via Overpass Turbo API through TELLme Project Virtual Lab tool 
@@ -40,8 +43,9 @@ The software is developed within the TELLme ERASMUS+ project Gran Agreement Numb
 * The app is being developed by Paolo Tagliolato, Alessandro Oggioni ([IREA-CNR](http://www.irea.cnr.it)), 
 * This code is released under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html) (GPL‑3).
 * Please get citation information for TELLme-vlab-OSMDataFromRelatedConcept at [DOI:10.5281/zenodo.3741896](https://doi.org/10.5281/zenodo.3741896)
-
-## Acknowledgments
-The authors wish to acknowledge Iacopo Neri and Valentina Galiulo ([PoliMi](https://www.polimi.it/)) for their insights and contribution.
 ``` bibtex
 ```
+
+### Acknowledgments
+The authors wish to acknowledge Iacopo Neri and Valentina Galiulo ([PoliMi](https://www.polimi.it/)) for their insights and contribution.
+
