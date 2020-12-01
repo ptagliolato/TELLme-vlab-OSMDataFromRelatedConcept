@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3741896.svg)](https://doi.org/10.5281/zenodo.3741896)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3741895.svg)](https://doi.org/10.5281/zenodo.3741895)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 TELLme-vlab-OSMDataFromRelatedConcept
@@ -32,7 +32,7 @@ Run a new container (exposing the app e.g. on port 8080, or choose a different o
 
 ### Guidelines for metadata lineage field of downloaded files
 OpenStreetMap data relative to TELLme Project Glossary Keywords and Related Concepts, obtained via [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) through TELLme Project Virtual Lab tool 
-(DOI: 10.5281/zenodo.3741896)
+(DOI: 10.5281/zenodo.3741895)
 
 ## Meta
 * Please [provide any issue](https://github.com/ptagliolato/TELLme-vlab-OSMDataFromRelatedConcept/issues), or email tagliolato.p(at)irea.cnr.it
@@ -42,7 +42,7 @@ The software is developed within the TELLme ERASMUS+ project Gran Agreement Numb
 
 * The app is being developed by Paolo Tagliolato, Alessandro Oggioni ([IREA-CNR](http://www.irea.cnr.it)), 
 * This code is released under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html) (GPL‑3).
-* Please get citation information for TELLme-vlab-OSMDataFromRelatedConcept at [DOI:10.5281/zenodo.3741896](https://doi.org/10.5281/zenodo.3741896)
+* Please get citation information for TELLme-vlab-OSMDataFromRelatedConcept at [DOI:10.5281/zenodo.3741895](https://doi.org/10.5281/zenodo.3741895)
 ``` bibtex
 ```
 
