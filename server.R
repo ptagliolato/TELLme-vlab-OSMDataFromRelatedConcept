@@ -797,7 +797,6 @@ shinyServer(function(input, output, session) {
           statusSetConcept<-status_code(resSetConcept)
           logger$logger<-c(logger$logger,paste("set concept id", git_lname, "to tellme hub - response status:", statusSetConcept))
           
-          browser()
           conc<-paste0("c",curlayer_conceptId)
           stylesforCurrentLayer<-concept2style[[paste0("c",curlayer_conceptId)]]
           # add styles and set default style
