@@ -800,7 +800,7 @@ shinyServer(function(input, output, session) {
           conc<-paste0("c",curlayer_conceptId)
           stylesforCurrentLayer<-concept2style[[paste0("c",curlayer_conceptId)]]
           # add styles and set default style
-          for(styname in 1:length(stylesforCurrentLayer)){
+          for(styname in stylesforCurrentLayer){
             geoserver_layer_add_style(geoserver_url, geoserver_user, geoserver_password, 
                                       layername = git_lname,
                                       stylename = styname
