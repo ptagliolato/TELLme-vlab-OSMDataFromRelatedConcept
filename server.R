@@ -85,11 +85,13 @@ shinyServer(function(input, output, session) {
         ),
         type = c("lines"),
         color = color.roads.line,
-        conceptId = 1
+        conceptId = 1,
+        selectColumns=list("osm_id", "name", 
+                           hghwy="highway", srfc="surface", maxspd="maxspeed", lns="lanes", onwwy="oneway", tnl="tunnel", "toll") 
+        # use with select_ (UNDESCORE!!) and .dots. E.G. curlayer %>% dplyr::select_(.dots=selectColumns)
       ),
-      # TODO: mancano ancora: 
+      # TODO: mancano ancora: # check with POLIMI which info from OSM are appropriate
       # body_of_water_lakes, 
-      # body_of_water_rivers, 
       # body_of_water_wetlands,
       # body_of_water_springs, 
       body_of_water_rivers = list(
@@ -115,17 +117,19 @@ shinyServer(function(input, output, session) {
       ),
       railways = list(
         key = "railway",
-        features = NA,
+        features = NA,#c("rail", "tram")
         type = c("lines"),
         color = mygrays[10],
-        conceptId=24
+        conceptId=24,
+        selectColumns=list("osm_id", "name", railway="railway")
       ),
       subway = list(
         key="railway",
         features=c("subway"),
         type=c("lines"),
         color="#b41d0f",
-        conceptId=185
+        conceptId=185,
+        selectColumns=list("osm_id", "name", railway="railway")
       ),
       land_use = list(
         key = "landuse",
@@ -136,24 +140,29 @@ shinyServer(function(input, output, session) {
                      'farm'),
         type = c("polygons"),
         color = mycolors[7],
-        conceptId=26
+        conceptId=26,
+        selectColumns=list("osm_id", "name", landuse="landuse")
       ),
-      recycling_points=list( #TODO: serve che restituisca cosa ricicla. es. recycling:paper
-        key="amenity",
-        features=c('recycling'),
-        renameTagsForFeature=c('recycling'),
-        type=c("points"),
-        color=mycolors[7],
-        conceptId=111
-      ),
-      archelogical_sites=list(
+      ########
+      # TODO - need style and instructions from POLIMI
+      #####
+      # recycling_points=list( #TODO: serve che restituisca cosa ricicla. es. recycling:paper
+      #   key="amenity",
+      #   features=c('recycling'),
+      #   renameTagsForFeature=c('recycling'),
+      #   type=c("points"),
+      #   color=mycolors[7],
+      #   conceptId=111
+      # ),
+      #########
+      archelogical_sites=list( # TODO: need style from POLIMI
         key="historic",
         features=c('archaeological_site'),
         type=c("points"),
         color=mycolors[],
         conceptId=94
       ),
-      belvedere=list(
+      belvedere=list( # TODO: need style from POLIMI
         key="tourism",
         features=c('viewpoint'),
         type=c("points"),
@@ -165,7 +174,7 @@ shinyServer(function(input, output, session) {
       #   features=c(''),
       #   type=c("points"),
       #   color=mycolors[],
-      #   conceptId=119
+      #   conceptId=
       # ),
       market_global=list(
         key="amenity",
@@ -180,21 +189,25 @@ shinyServer(function(input, output, session) {
         features=c(''),
         type=c("polygons"),
         color=color.buildArea.area,
-        conceptId=2
+        conceptId=2,
+        selectColumns=list("osm_id", "name", bldng="building") # TODO: check original name
       ),
       water_harvesting=list(
+        # TODO: this one should not be uploaded to tellmehub geoserver, 
+        #       but on the geoserver "global" which supports its style with remote svg symbol
         key="man_made",
         features=c('water_tower','storage_tank'),
         type=c("points"),
         color=mycolors[],
-        conceptId=125
+        conceptId=125,
+        selectColumns=list("osm_id", "name", man_mad="man_made") # TODO: check original name
       ),
       educational_institutes=list(
         key="amenity",
         features=c('college','kindergarden','language_school','library','school','university'),
         type=c("polygons"),
         color=mycolors[],
-        conceptId=191
+        conceptId=191 
       )
     )
   }
@@ -293,7 +306,7 @@ shinyServer(function(input, output, session) {
       c(BBX$W, BBX$S, BBX$E, BBX$N)
     })
     
-    # concatenation of bbx with "_" separator
+    # return the digest of the string obtained by the concatenation of bbx with "_" separator. 
     bbx_concat <- reactive({
       digest(paste(bbx(), sep = "_", collapse = "_"), algo="xxhash64")
     })
@@ -401,6 +414,7 @@ shinyServer(function(input, output, session) {
           features <- rc2osmKeyFeat[[selectedConcept]]$features
           type <- rc2osmKeyFeat[[selectedConcept]]$type
           color <- rc2osmKeyFeat[[selectedConcept]]$color
+          selectColumns <- rc2osmKeyFeat[[selectedConcept]]$selectColumns
           
           # ...ok , let's retrieve data
           if (!is.na(features)) {
@@ -467,7 +481,7 @@ shinyServer(function(input, output, session) {
           
           ####
           if (!is.na(match("points", type)) &&
-              !is.null(x$osm_points) && length(x$osm_points) > 0) {
+              !is.null(x$osm_points) && length(x$osm_points) > 0 && nrow(x$osm_points) > 0) { #TODO: add condition that nrow(x$osm_points) > 0
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             
             ##> CRS in sf is already ok
@@ -479,14 +493,22 @@ shinyServer(function(input, output, session) {
            # points<-x$osm_points
             
             ##> TODO: check RV$layers usage after switching to SF
-            RV$layers[[selectedConcept]] <- x$osm_points #points 
+            
+            if(!is.null(selectColumns)){
+              # NOTE: depending on the bbx, not all the expected columns are present. Revise the "selectColumns" depending on this
+              actualSelectColumns<-selectColumns[unlist(selectColumns) %in% names(x$osm_points)]
+              RV$layers[[selectedConcept]] <- x$osm_points %>% dplyr::select_(.dots = actualSelectColumns)
+            }
+            else{
+              RV$layers[[selectedConcept]] <- x$osm_points #points 
+            }
           }
           
           
           ####
           
           if (!is.na(match("lines", type)) &&
-              !is.null(x$osm_lines) && length(x$osm_lines) > 0) {
+              !is.null(x$osm_lines) && length(x$osm_lines) > 0 && nrow(x$osm_lines) > 0) {
             # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             
             ##> CRS in sf is already ok
@@ -497,18 +519,31 @@ shinyServer(function(input, output, session) {
             # 
             # lines <- spTransform(x$osm_lines, CRSobj = CRS)
             #lines <- x$osm_lines
-            RV$layers[[selectedConcept]] <- x$osm_lines #lines
+            if(!is.null(selectColumns)){
+              actualSelectColumns<-selectColumns[unlist(selectColumns) %in% names(x$osm_lines)]
+              RV$layers[[selectedConcept]] <- x$osm_lines %>% dplyr::select_(.dots = selectColumns)
+            }
+            else{
+              RV$layers[[selectedConcept]] <- x$osm_lines #lines 
+            }
           }
           
           if (!is.na(match("polygons", type)) &&
-              !is.null(x$osm_polygons) && length(x$osm_polygons) > 0) {
+              !is.null(x$osm_polygons) && length(x$osm_polygons) > 0  && nrow(x$osm_polygons) > 0) {
             
             ##> CRS in sf is already ok
             # # in order to correctly plot the layer in the leaflet component, we must reproject the data.
             # polygons <-
             #   spTransform(x$osm_polygons, CRSobj = CRS)
             #polygons <- x$osm_polygons
-            RV$layers[[selectedConcept]] <- x$osm_polygons #polygons
+            
+            if(!is.null(selectColumns)){
+              actualSelectColumns<-selectColumns[unlist(selectColumns) %in% names(x$osm_polygons)]
+              RV$layers[[selectedConcept]] <- x$osm_polygons %>% dplyr::select_(.dots = selectColumns)
+            }
+            else{
+              RV$layers[[selectedConcept]] <- x$osm_polygons #polygons 
+            }
           }
           errorRaised<-FALSE
           rm(x)
@@ -618,7 +653,6 @@ shinyServer(function(input, output, session) {
   })
   
   # download shape files
-  # TODO: insert uploading to geoserver and get-it here (?)
   output$downloadShapeFiles <- downloadHandler(
     filename = function(){paste(assetname(), "zip", sep = ".")},# .zip extension is added here...
     content = function(file) {
@@ -655,18 +689,9 @@ shinyServer(function(input, output, session) {
         # names(curlayer)[posizioni_con_tag]<-gsub(names(curlayer)[posizioni_con_tag],pattern=recycling_points$features, replacement = "t")
         # ## QUI
         
-        
-        # ##> use sf instead of sp, so substitute rgdal::writeOGR with sf::st_write 
-        # rgdal::writeOGR(
-        #   obj = curlayer,
-        #   dsn = tmpshapedir,
-        #   layer = curlayer_file_name,
-        #   driver = "ESRI Shapefile"
-        # 
         dsn_tmpshapedir = paste(tmpdir, curlayer_file_name, sep = "/") 
         message("-- trying to write single shapefile to folder", dsn_tmpshapedir)
         sf::st_write(obj = curlayer, dsn=dsn_tmpshapedir,layer=curlayer_file_name, driver = "ESRI Shapefile") 
-        #sf::st_write(obj = curlayer, dsn=tmpshapedir,layer=curlayer_file_name, driver = "ESRI Shapefile") 
         
         message("-- written single shapefile to folder")
       }
@@ -760,12 +785,8 @@ shinyServer(function(input, output, session) {
             files = fileslist,
             flags = "-j")
         
-        # TODO: uncomment the following function calls once checks of the previuos todo have been completed and the needed parameters (username, admin account, etc.) have been cabled into the app\
         keyword<-curlayer_name
         layername<-curlayer_file_name
-        
-        stylenames<-c("","","...") # possibly more than one!! need protocol number, scale, and also concept number, that should be mapped in the dictionary of relatedconcepts
-        
         
         message("-- zipname_and_path (zipfullpath): ", zipfullpath)
         result<-getit_uploadLayer(getit_url = getit_url,
