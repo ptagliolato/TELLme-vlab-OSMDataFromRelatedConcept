@@ -264,7 +264,7 @@ getit_uploadLayer<-function(getit_url, getit_user,getit_userpassword, zipname_an
                        permissions='{"users":{"AnonymousUser":["view_resourcebase","download_resourcebase"]},"groups":{}}',
                        zip_file=upload_file(zipname_and_path),
                        charset="UTF-8",
-                       abstract="obtained by TELLme-Vlab OSMDataFromRelatedConcept",
+                       abstract="Obtained by TELLme-Vlab OSMDataFromRelatedConcept. Data: (c) Open Street Map contributors. License: ODbL",
                        layer_title=layertitle)
   )
   # extract geoserver_layername from response if possible

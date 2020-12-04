@@ -19,6 +19,7 @@ library(geosapi) #libreria per accesso a geoserver API
 #library(mapview)
 library(digest) # xxhash64 is used to hash bbx in layer names in order to limit their nchar<64 (ncher(layernames)>=64 is invalid in postgis and causes errors)
 library(RColorBrewer)
+library(dplyr)
 
 shinyServer(function(input, output, session) {
   # settings (colors, relatedConcepts->OSMfeature presets)
@@ -46,11 +47,11 @@ shinyServer(function(input, output, session) {
                   railways=5,
                   land_use=6,
                   recycling_points=7,
-                  archelogical_sites=8,
-                  belvedere=9,
+                  archelogical_sites=8, # TODO: need style from POLIMI
+                  belvedere=9,          # TODO: need style from POLIMI
                   market_global=10,
                   built_up_area=11,
-                  water_harvesting=12,
+                  water_harvesting=12,  # TODO: this one should not be uploaded to tellmehub geoserver, style by POLIMI is not supported
                   educational_institutes=13,
                   subway=185
                   )
@@ -190,7 +191,7 @@ shinyServer(function(input, output, session) {
         type=c("polygons"),
         color=color.buildArea.area,
         conceptId=2,
-        selectColumns=list("osm_id", "name", bldng="building") # TODO: check original name
+        selectColumns=list("osm_id", "name", bldng="building") 
       ),
       water_harvesting=list(
         # TODO: this one should not be uploaded to tellmehub geoserver, 
