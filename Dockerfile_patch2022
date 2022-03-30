@@ -1,0 +1,7 @@
+FROM ptagliolato/tellme-vlab-osmdatafromrelatedconcept:1.1.1
+
+RUN apt-get update && \
+  apt-get install ca-certificates && \
+  apt-get clean
+  
+CMD ["R", "-e", "shiny::runApp('/root/TELLme-vlab-OSMDataFromRelatedConcept')"]
