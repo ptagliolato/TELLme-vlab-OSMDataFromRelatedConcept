@@ -51,3 +51,13 @@ The authors wish to acknowledge Iacopo Neri and Valentina Galiulo ([PoliMi](http
 Open Street Map
 Data downloaded by this app are from [© OpenStreetMap contributors](https://www.openstreetmap.org/copyright) and are available under the [ODbL license](www.openstreetmap.org/copyright or www.opendatacommons.org/licenses/odbl). This product is not endorsed by or affiliated with the OpenStreetMap Foundation. 
 
+### NOTES: compatibility issue
+The software depends on the package shinydashboardPlus at its version 0.7.5.
+More recent version of this library breaks the application UI.
+We are planning to upgrade the app, until that moment you can use it by
+trying to force the installation of shinydashboardPlus in your system with the 
+statement
+
+    devtools::install_github("RinteRface/shinydashboardPlus@v0.7.5"”)
+
+or by exploiting the docker image.
